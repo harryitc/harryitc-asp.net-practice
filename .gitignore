@@ -1,0 +1,56 @@
+# Visual Studio and ASP.NET Core
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln.docstates
+*.user
+*.vs
+
+# Build and output directories
+bin/
+obj/
+
+# User-specific files
+*.rsuser
+*.userprefs
+
+# Logs
+*.log
+
+# NuGet Packages
+*.nupkg
+**/packages/
+.nuget/
+
+# Config & secrets
+# appsettings.json
+# appsettings.Development.json
+secrets.json
+.env
+.env.local
+
+# Entity Framework Migrations
+Migrations/
+
+# Temporary files
+*.pid
+*.cache
+*.temp
+
+# Rider / JetBrains
+.idea/
+*.iml
+
+# Resharper
+*.DotSettings.user
+
+# IIS Express
+/.vs/
+
+# SonarQube
+.sonar/
+
+# Docker
+**/docker-compose.override.yml
