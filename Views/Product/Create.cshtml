@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Create";
-    var imageList = ViewData["ImageList"] as List<string>;
+    var unsplashImages = ViewData["ImageList"] as List<string>;
 }
 
 <h1>Create</h1>
@@ -30,46 +30,44 @@
             @*     <span asp-validation-for="ImageUrl" class="text-danger"></span> *@
             @* </div> *@
 
-            <div class="form-group">
-                @* <label>Chọn hình ảnh</label> *@
-                <label asp-for="ImageUrl" class="control-label"></label>
-                <div>
-                    <input type="radio" name="imageType" value="url" checked onchange="toggleImageOption()"> Nhập URL  
-                    <input type="radio" name="imageType" value="upload" onchange="toggleImageOption()"> Upload  
-                    <input type="radio" name="imageType" value="unsplash" onchange="toggleImageOption()"> Chọn từ danh sách  
-                </div>
+               <div class="form-group">
+        <label>Chọn cách nhập ảnh</label>
+        <div>
+            <input type="radio" name="imageOption" value="url" checked> Nhập URL
+            <input type="radio" name="imageOption" value="upload"> Upload
+            <input type="radio" name="imageOption" value="select"> Chọn từ danh sách
+        </div>
+    </div>
 
-                <!-- Nhập URL ảnh -->
-                <div id="imageUrlDiv">
-                    <input type="text" asp-for="ImageUrl" class="form-control" placeholder="Nhập URL hình ảnh">
-                </div>
+    <!-- Nhập URL ảnh -->
+    <div class="form-group" id="urlInput">
+        <input type="text" name="__imageUrl" class="form-control" placeholder="Nhập URL hình ảnh">
+    </div>
 
-                <!-- Upload ảnh -->
-                <div id="imageUploadDiv" style="display:none;">
-                    <input type="file" name="ImageFile" class="form-control">
-                </div>
+    <!-- Upload ảnh -->
+    <div class="form-group" id="uploadInput" style="display: none;">
+        <input type="file" name="ImageFile" class="form-control">
+    </div>
 
-               <!-- Chọn ảnh từ danh sách -->
-                <div id="imageListDiv" style="display:none;">
-                    <select id="imageSelect" class="form-control" onchange="updateImageUrl(this.value)">
-                        <option value="">Chọn ảnh</option>
-                        @if (imageList != null && imageList.Count > 0)
-                                {
-                                    @foreach (var img in imageList)
-                                    {
-                                                <option value="@img">@img</option>
-                                    }
-                                }
-                    </select>
-                </div>
+    <!-- Chọn ảnh từ Unsplash -->
+    <div class="form-group" id="selectInput" style="display: none;">
+        <label>Chọn hình ảnh:</label>
+        <div class="image-grid">
+                    @if (unsplashImages != null)
+                    {
+                        @foreach (var imageUrl in unsplashImages)
+                        {
+                            <img src="@imageUrl" class="selectable-image" onclick="selectImage('@imageUrl')">
+                        }
+                    }
+        </div>
+    </div>
 
-                <!-- Preview ảnh -->
-                <div id="imagePreviewDiv" style="margin-top: 10px; display: none;">
-                    <label>Preview:</label>
-                    <img id="imagePreview" src="" alt="Preview" style="max-width: 300px; display: block; border: 1px solid #ccc; padding: 5px;">
-                </div>
-            </div>
-
+    <!-- Preview ảnh -->
+    <div class="form-group">
+        <label>Preview:</label>
+        <img id="imagePreview" src="@Model?.ImageUrl" alt="Preview" style="max-width: 300px; display: block; border: 1px solid #ccc; padding: 5px;">
+    </div>
 
             <div class="form-group">
                 <label asp-for="Description" class="control-label"></label>
@@ -96,57 +94,80 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+
+<style>
+.image-grid img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin: 5px;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.image-grid img.selected {
+    border: 2px solid blue;
+}
+</style>
+
 <script>
-    function toggleImageOption() {
-        var selected = document.querySelector('input[name="imageType"]:checked').value;
+document.addEventListener("DOMContentLoaded", function() {
+    const imageUrlInput = document.querySelector("input[name='__imageUrl']");
+    const imageFileInput = document.querySelector("input[name='ImageFile']");
+    const imagePreview = document.getElementById("imagePreview");
 
-        document.getElementById('imageUrlDiv').style.display = (selected === 'url') ? 'block' : 'none';
-        document.getElementById('imageUploadDiv').style.display = (selected === 'upload') ? 'block' : 'none';
-        document.getElementById('imageListDiv').style.display = (selected === 'unsplash') ? 'block' : 'none';
+    const urlRadio = document.querySelector("input[value='url']");
+    const uploadRadio = document.querySelector("input[value='upload']");
+    const selectRadio = document.querySelector("input[value='select']");
+    
+    const urlInput = document.getElementById("urlInput");
+    const uploadInput = document.getElementById("uploadInput");
+    const selectInput = document.getElementById("selectInput");
 
-        // Reset ImageUrl khi đổi option
-        document.getElementById('ImageUrl').value = '';
-        updateImagePreview(''); // Xóa preview khi thay đổi option
-    }
 
-    function updateImageUrl(url) {
-        document.getElementById('ImageUrl').value = url;
-        updateImagePreview(url);
-    }
-
-    function uploadImage(event) {
-        var file = event.target.files[0];
-        if (file) {
-            var formData = new FormData();
-            formData.append("file", file);
-
-            fetch('/Product/UploadImage', {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('ImageUrl').value = data.imageUrl;
-                    updateImagePreview(data.imageUrl);
-                } else {
-                    alert("Lỗi upload ảnh!");
-                }
-            })
-            .catch(error => console.error("Lỗi:", error));
+    function updatePreview() {
+        if (urlRadio.checked) {
+            // Cập nhật preview theo URL nhập vào
+            imagePreview.src = imageUrlInput.value;
+        document.getElementById('ImageUrl').value = imageUrlInput.value;
+        } else if (uploadRadio.checked) {
+            // Cập nhật preview theo file upload
+            const file = imageFileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    document.getElementById('ImageUrl').value = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
         }
     }
 
-    function updateImagePreview(url) {
-        var previewDiv = document.getElementById('imagePreviewDiv');
-        var previewImg = document.getElementById('imagePreview');
-
-        if (url) {
-            previewImg.src = url;
-            previewDiv.style.display = "block";
-        } else {
-            previewImg.src = "";
-            previewDiv.style.display = "none";
-        }
+    function toggleInputs() {
+        urlInput.style.display = urlRadio.checked ? "block" : "none";
+        uploadInput.style.display = uploadRadio.checked ? "block" : "none";
+        selectInput.style.display = selectRadio.checked ? "block" : "none";
     }
+
+    function selectImage(url) {
+        imagePreview.src = url;
+        imageUrlInput.value = url;
+        document.querySelectorAll(".selectable-image").forEach(img => img.classList.remove("selected"));
+        event.target.classList.add("selected");
+    }
+
+    // Gán sự kiện cho các input
+    imageUrlInput.addEventListener("input", updatePreview);
+    imageFileInput.addEventListener("change", updatePreview);
+    urlRadio.addEventListener("change", toggleInputs);
+    uploadRadio.addEventListener("change", toggleInputs);
+    selectRadio.addEventListener("change", toggleInputs);
+
+    // Định nghĩa hàm chọn ảnh từ Unsplash
+    window.selectImage = selectImage;
+
+    // Thiết lập trạng thái ban đầu
+    toggleInputs();
+});
 </script>

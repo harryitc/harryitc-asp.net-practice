@@ -16,7 +16,7 @@ builder.Services.AddScoped<IRepository<Product>, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 //Đăng ký Service
-builder.Services.AddHttpClient<IImageService, ImageService>();
+builder.Services.AddHttpClient<IImageService, UnsplashService>();
 
 var app = builder.Build();
 
