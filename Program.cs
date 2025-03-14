@@ -1,5 +1,6 @@
 ﻿using FlowerShop.Models;
 using FlowerShop.Repository;
+using FlowerShop.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +15,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IRepository<Product>, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
-
+//Đăng ký Service
+builder.Services.AddHttpClient<IImageService, ImageService>();
 
 var app = builder.Build();
 

@@ -1,7 +1,8 @@
-@model Product
+﻿@model Product
 
 @{
     ViewData["Title"] = "Create";
+    var imageList = ViewData["ImageList"] as List<string>;
 }
 
 <h1>Create</h1>
@@ -10,7 +11,8 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model?.ImageUrl" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
@@ -22,11 +24,53 @@
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
+            @* <div class="form-group"> *@
+            @*     <label asp-for="ImageUrl" class="control-label"></label> *@
+            @*     <input asp-for="ImageUrl" class="form-control" /> *@
+            @*     <span asp-validation-for="ImageUrl" class="text-danger"></span> *@
+            @* </div> *@
+
             <div class="form-group">
+                @* <label>Chọn hình ảnh</label> *@
                 <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                <div>
+                    <input type="radio" name="imageType" value="url" checked onchange="toggleImageOption()"> Nhập URL  
+                    <input type="radio" name="imageType" value="upload" onchange="toggleImageOption()"> Upload  
+                    <input type="radio" name="imageType" value="unsplash" onchange="toggleImageOption()"> Chọn từ danh sách  
+                </div>
+
+                <!-- Nhập URL ảnh -->
+                <div id="imageUrlDiv">
+                    <input type="text" asp-for="ImageUrl" class="form-control" placeholder="Nhập URL hình ảnh">
+                </div>
+
+                <!-- Upload ảnh -->
+                <div id="imageUploadDiv" style="display:none;">
+                    <input type="file" name="ImageFile" class="form-control">
+                </div>
+
+               <!-- Chọn ảnh từ danh sách -->
+                <div id="imageListDiv" style="display:none;">
+                    <select id="imageSelect" class="form-control" onchange="updateImageUrl(this.value)">
+                        <option value="">Chọn ảnh</option>
+                        @if (imageList != null && imageList.Count > 0)
+                                {
+                                    @foreach (var img in imageList)
+                                    {
+                                                <option value="@img">@img</option>
+                                    }
+                                }
+                    </select>
+                </div>
+
+                <!-- Preview ảnh -->
+                <div id="imagePreviewDiv" style="margin-top: 10px; display: none;">
+                    <label>Preview:</label>
+                    <img id="imagePreview" src="" alt="Preview" style="max-width: 300px; display: block; border: 1px solid #ccc; padding: 5px;">
+                </div>
             </div>
+
+
             <div class="form-group">
                 <label asp-for="Description" class="control-label"></label>
                 <input asp-for="Description" class="form-control" />
@@ -44,9 +88,65 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a action="btn btn-dark" asp-action="Index">Quay lại danh sách</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
+<script>
+    function toggleImageOption() {
+        var selected = document.querySelector('input[name="imageType"]:checked').value;
+
+        document.getElementById('imageUrlDiv').style.display = (selected === 'url') ? 'block' : 'none';
+        document.getElementById('imageUploadDiv').style.display = (selected === 'upload') ? 'block' : 'none';
+        document.getElementById('imageListDiv').style.display = (selected === 'unsplash') ? 'block' : 'none';
+
+        // Reset ImageUrl khi đổi option
+        document.getElementById('ImageUrl').value = '';
+        updateImagePreview(''); // Xóa preview khi thay đổi option
+    }
+
+    function updateImageUrl(url) {
+        document.getElementById('ImageUrl').value = url;
+        updateImagePreview(url);
+    }
+
+    function uploadImage(event) {
+        var file = event.target.files[0];
+        if (file) {
+            var formData = new FormData();
+            formData.append("file", file);
+
+            fetch('/Product/UploadImage', {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('ImageUrl').value = data.imageUrl;
+                    updateImagePreview(data.imageUrl);
+                } else {
+                    alert("Lỗi upload ảnh!");
+                }
+            })
+            .catch(error => console.error("Lỗi:", error));
+        }
+    }
+
+    function updateImagePreview(url) {
+        var previewDiv = document.getElementById('imagePreviewDiv');
+        var previewImg = document.getElementById('imagePreview');
+
+        if (url) {
+            previewImg.src = url;
+            previewDiv.style.display = "block";
+        } else {
+            previewImg.src = "";
+            previewDiv.style.display = "none";
+        }
+    }
+</script>

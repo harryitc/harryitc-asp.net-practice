@@ -27,6 +27,36 @@
                 <input asp-for="ImageUrl" class="form-control" />
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
+
+
+            <div class="form-group">
+                <label class="control-label">Chọn cách thêm ảnh</label>
+                <select id="imageOption" class="form-control">
+                    <option value="link">Nhập link ảnh</option>
+                    <option value="upload">Tải ảnh lên</option>
+                    <option value="select">Chọn từ danh mục</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="imageLink">
+                <label asp-for="ImageUrl" class="control-label"></label>
+                <input asp-for="ImageUrl" class="form-control" />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" id="imageUpload" style="display: none;">
+                <label class="control-label">Tải ảnh lên</label>
+                <input type="file" id="uploadFile" class="form-control" />
+            </div>
+
+            <div class="form-group" id="imageSelect" style="display: none;">
+                <label class="control-label">Chọn ảnh có sẵn</label>
+                <select id="presetImages" class="form-control"></select>
+            </div>
+
+            <img id="previewImage" src="@Model?.ImageUrl" alt="Xem trước hình ảnh" style="max-width: 200px; display: block; margin-top: 10px;" />
+
+
             <div class="form-group mb-3">
                 <label asp-for="Description" class="form-label"></label>
                 <input asp-for="Description" class="form-control" />
@@ -49,5 +79,50 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
+
+
+                <script>
+    document.getElementById("imageOption").addEventListener("change", function () {
+        let selected = this.value;
+        document.getElementById("imageLink").style.display = selected === "link" ? "block" : "none";
+        document.getElementById("imageUpload").style.display = selected === "upload" ? "block" : "none";
+        document.getElementById("imageSelect").style.display = selected === "select" ? "block" : "none";
+    });
+
+    // Load ảnh từ danh sách API Unsplash (Crawl API)
+    async function loadPresetImages() {
+        let response = await fetch("/Product/GetUnsplashImages");
+        let images = await response.json();
+        let select = document.getElementById("presetImages");
+        select.innerHTML = "";
+        images.forEach(img => {
+            let option = document.createElement("option");
+            option.value = img;
+            option.textContent = img;
+            select.appendChild(option);
+        });
+    }
+
+    document.getElementById("imageOption").addEventListener("change", function () {
+        if (this.value === "select") loadPresetImages();
+    });
+
+    document.getElementById("presetImages").addEventListener("change", function () {
+        document.getElementById("previewImage").src = this.value;
+        document.getElementById("ImageUrl").value = this.value;
+    });
+
+    document.getElementById("uploadFile").addEventListener("change", function () {
+        let file = this.files[0];
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById("previewImage").src = e.target.result;
+            document.getElementById("ImageUrl").value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+</script>

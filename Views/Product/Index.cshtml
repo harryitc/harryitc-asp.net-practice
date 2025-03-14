@@ -53,8 +53,8 @@
     {
                             <div class="col-auto custom-col">
                                 <div class="card shadow" style="width: 15rem;">
-                                    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff"
-                                        class="card-img-top" alt="...">
+                                        <img src=@Html.DisplayFor(modelItem => item.ImageUrl)
+                                            class="card-img-top object-fit-cover" alt="...">
                                             <div class="tools">
                                                     <a asp-action="Edit" asp-route-id="@item.Id">
                                                 <i class="fa-solid fa-pen-to-square myTooltip" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Chỉnh sửa"></i>
