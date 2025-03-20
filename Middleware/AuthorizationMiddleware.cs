@@ -15,7 +15,7 @@ public class AuthorizationMiddleware
         string path = context.Request.Path.ToString().ToLower();
 
         // Kiểm tra nếu truy cập trang quản trị mà không có quyền
-        if (path.StartsWith("/admin") && context.Session.GetString("UserRole") != "Admin")
+        if (path.StartsWith("/admin") && context.Session.GetString("UserRole") != RoleUser.Admin)
         {
             context.Response.Redirect("/Auth/Unauthorized");
             return;
