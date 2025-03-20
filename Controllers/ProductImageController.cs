@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using FlowerShop.Models;
 using FlowerShop.Repository;
+using FlowerShop.Services;
 
 namespace FlowerShop.Controllers
 {
@@ -14,11 +15,20 @@ namespace FlowerShop.Controllers
     {
         private readonly IProductImageRepository _productImageRepository;
         private readonly IProductRepository _productRepository;
+        private readonly ImageUploadService _imageUploadService;
+        private readonly IImageService _imageService;
 
-        public ProductImageController(IProductImageRepository productImageRepository, IProductRepository productRepository)
+        public ProductImageController(
+            IProductImageRepository productImageRepository,
+            IProductRepository productRepository,
+            ImageUploadService imageUploadService,
+            IImageService imageService
+            )
         {
             _productImageRepository = productImageRepository;
             _productRepository = productRepository;
+            _imageUploadService = imageUploadService;
+            _imageService = imageService;
         }
 
         // GET: ProductImage
@@ -46,16 +56,29 @@ namespace FlowerShop.Controllers
         {
             var products = await _productRepository.GetAllAsync();
             ViewData["ProductId"] = new SelectList(products, "Id", "Name");
+
+            var images = await _imageService.GetUnsplashImagesAsync("flowers", 5);
+            ViewData["ImageList"] = images;
+
             return View();
         }
 
         // POST: ProductImage/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ImageUrl,ProductId")] ProductImage productImage)
+        public async Task<IActionResult> Create([Bind("Id,ImageUrl,ProductId")] ProductImage productImage,
+        IFormFile? ImageFile
+        )
         {
             if (ModelState.IsValid)
             {
+
+                // Nếu người dùng chọn upload file
+                if (ImageFile != null)
+                {
+                    productImage.ImageUrl = await _imageUploadService.Save(ImageFile);
+                }
+
                 await _productImageRepository.AddAsync(productImage);
                 return RedirectToAction(nameof(Index));
             }
@@ -77,19 +100,33 @@ namespace FlowerShop.Controllers
 
             var products = await _productRepository.GetAllAsync();
             ViewData["ProductId"] = new SelectList(products, "Id", "Name", productImage.ProductId);
+
+            var images = await _imageService.GetUnsplashImagesAsync("flowers", 5);
+            ViewData["ImageList"] = images;
+
             return View(productImage);
         }
 
         // POST: ProductImage/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ImageUrl,ProductId")] ProductImage productImage)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ImageUrl,ProductId")] ProductImage productImage,
+        IFormFile? ImageFile
+        )
         {
             if (id != productImage.Id)
                 return NotFound();
 
             if (ModelState.IsValid)
             {
+
+                // Nếu người dùng chọn upload file
+                if (ImageFile != null)
+                {
+                    productImage.ImageUrl = await _imageUploadService.Save(ImageFile);
+                }
+
+
                 if (!await _productImageRepository.ExistsAsync(id))
                     return NotFound();
 

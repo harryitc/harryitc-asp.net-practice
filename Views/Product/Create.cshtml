@@ -9,26 +9,22 @@
 
 <h4>Product</h4>
 <hr />
+
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create" method="post" enctype="multipart/form-data">
             <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model?.ImageUrl" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="form-control"></label>
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="form-label"></label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Price" class="form-control"></label>
+            <div class="form-group mb-3">
+                <label asp-for="Price" class="form-label"></label>
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
-            @* <div class="form-group"> *@
-            @*     <label asp-for="ImageUrl" class="form-control"></label> *@
-            @*     <input asp-for="ImageUrl" class="form-control" /> *@
-            @*     <span asp-validation-for="ImageUrl" class="text-danger"></span> *@
-            @* </div> *@
 
             <div class="form-group">
                 <label class="form-control" asp-for="ImageUrl"></label>
@@ -50,39 +46,41 @@
             </div>
 
             <!-- Chọn ảnh từ Unsplash -->
-            <div class="form-group" id="selectInput" style="display: none;">
-                <label>Chọn hình ảnh:</label>
+            <div class="form-group mb-3" id="selectInput" style="display: none;">
+                <label class="form-label">Chọn hình ảnh:</label>
                 <div class="image-grid">
                     @if (unsplashImages != null)
                     {
                         @foreach (var imageUrl in unsplashImages)
                         {
-                            <img src="@imageUrl" class="selectable-image" onclick="selectImage('@imageUrl')">
+                            <img src="@imageUrl" class="img img-fluid selectable-image" onclick="selectImage('@imageUrl')">
                         }
                     }
                 </div>
             </div>
 
-            <!-- Preview ảnh -->
-            <div class="form-group">
-                <label>Preview:</label>
-                <img id="imagePreview" src="@Model?.ImageUrl" alt="Preview"
-                    style="max-width: 300px; display: block; border: 1px solid #ccc; padding: 5px;">
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Description" class="form-control"></label>
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="form-label"></label>
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="form-control"></label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+            <div class="form-group mb-3">
+                <label asp-for="CategoryId" class="form-label"></label>
+                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
+    </div>
+    <div class="col-md">
+        <!-- Preview ảnh -->
+        <div class="mb-3">
+            <label>Preview:</label>
+            <img id="imagePreview" src="@Model?.ImageUrl" alt="Preview"
+                style="max-width: 500px;max-height: 500px; display: block; border: 1px solid #ccc; padding: 5px;">
+        </div>
     </div>
 </div>
 
@@ -93,83 +91,6 @@
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        await Html.RenderPartialAsync("_HandleImageScriptsPartial");
     }
 }
-
-<style>
-    .image-grid img {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        margin: 5px;
-        cursor: pointer;
-        border: 2px solid transparent;
-    }
-
-    .image-grid img.selected {
-        border: 2px solid blue;
-    }
-</style>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const imageUrlInput = document.querySelector("input[name='__imageUrl']");
-        const imageFileInput = document.querySelector("input[name='ImageFile']");
-        const imagePreview = document.getElementById("imagePreview");
-
-        const urlRadio = document.querySelector("input[value='url']");
-        const uploadRadio = document.querySelector("input[value='upload']");
-        const selectRadio = document.querySelector("input[value='select']");
-
-        const urlInput = document.getElementById("urlInput");
-        const uploadInput = document.getElementById("uploadInput");
-        const selectInput = document.getElementById("selectInput");
-
-
-        function updatePreview() {
-            if (urlRadio.checked) {
-                // Cập nhật preview theo URL nhập vào
-                imagePreview.src = imageUrlInput.value;
-                document.getElementById('ImageUrl').value = imageUrlInput.value;
-            } else if (uploadRadio.checked) {
-                // Cập nhật preview theo file upload
-                const file = imageFileInput.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        imagePreview.src = e.target.result;
-                        document.getElementById('ImageUrl').value = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
-        }
-
-        function toggleInputs() {
-            urlInput.style.display = urlRadio.checked ? "block" : "none";
-            uploadInput.style.display = uploadRadio.checked ? "block" : "none";
-            selectInput.style.display = selectRadio.checked ? "block" : "none";
-        }
-
-        function selectImage(url) {
-            imagePreview.src = url;
-            imageUrlInput.value = url;
-            document.getElementById('ImageUrl').value = url;
-            document.querySelectorAll(".selectable-image").forEach(img => img.classList.remove("selected"));
-            event.target.classList.add("selected");
-        }
-
-        // Gán sự kiện cho các input
-        imageUrlInput.addEventListener("input", updatePreview);
-        imageFileInput.addEventListener("change", updatePreview);
-        urlRadio.addEventListener("change", toggleInputs);
-        uploadRadio.addEventListener("change", toggleInputs);
-        selectRadio.addEventListener("change", toggleInputs);
-
-        // Định nghĩa hàm chọn ảnh từ Unsplash
-        window.selectImage = selectImage;
-
-        // Thiết lập trạng thái ban đầu
-        toggleInputs();
-    });
-</script>

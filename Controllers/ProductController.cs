@@ -14,18 +14,22 @@ public class ProductController : Controller
     private readonly ICategoryRepository _categoryRepository;
     private readonly IImageService _imageService;
     private readonly IWebHostEnvironment _webHostEnvironment;
-    private readonly UnsplashService _unsplashService;
+
+    private readonly ImageUploadService _imageUploadService;
 
     public ProductController(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         IWebHostEnvironment webHostEnvironment,
-        IImageService imageService)
+        IImageService imageService,
+        ImageUploadService imageUploadService
+        )
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _webHostEnvironment = webHostEnvironment;
         _imageService = imageService;
+        _imageUploadService = imageUploadService;
     }
 
     // GET: Product
@@ -79,23 +83,12 @@ public class ProductController : Controller
     public async Task<IActionResult> Create([Bind("Id,Name,Price,ImageUrl,Description,CategoryId")] Product product,
         IFormFile? ImageFile)
     {
-        Console.WriteLine(product);
         if (ModelState.IsValid)
         {
             // Nếu người dùng chọn upload file
             if (ImageFile != null)
             {
-                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
-                Directory.CreateDirectory(uploadsFolder);
-                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                string filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await ImageFile.CopyToAsync(fileStream);
-                }
-
-                product.ImageUrl = "/uploads/" + fileName;
+                product.ImageUrl = await _imageUploadService.Save(ImageFile);
             }
 
             await _productRepository.AddAsync(product);
@@ -165,17 +158,7 @@ public class ProductController : Controller
             // Nếu người dùng chọn upload file
             if (ImageFile != null)
             {
-                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
-                Directory.CreateDirectory(uploadsFolder);
-                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                string filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await ImageFile.CopyToAsync(fileStream);
-                }
-
-                product.ImageUrl = "/uploads/" + fileName;
+                product.ImageUrl = await _imageUploadService.Save(ImageFile);
             }
             try
             {

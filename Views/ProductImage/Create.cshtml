@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Create";
+    var unsplashImages = ViewData["ImageList"] as List<string>;
 }
 
 <h1>Create</h1>
@@ -9,22 +10,82 @@
 <h4>ProductImage</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
+        <div class="col-md-4">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model?.ImageUrl" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
+
+
+            @* <div class="form-group">
                 <label asp-for="ImageUrl" class="form-label"></label>
                 <input asp-for="ImageUrl" class="form-control" />
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div> *@
+
+
+
+            <div class="form-group">
+                <label class="form-label" asp-for="ImageUrl"></label>
+                <div>
+                    <input type="radio" name="imageOption" value="url" checked> Nhập URL
+                    <input type="radio" name="imageOption" value="upload"> Upload
+                    <input type="radio" name="imageOption" value="select"> Chọn từ danh sách
+                </div>
             </div>
+
+            <!-- Nhập URL ảnh -->
+            <div class="form-group" id="urlInput">
+                <input type="text" name="__imageUrl" class="form-control" placeholder="Nhập URL hình ảnh">
+            </div>
+
+            <!-- Upload ảnh -->
+            <div class="form-group" id="uploadInput" style="display: none;">
+                <input type="file" name="ImageFile" class="form-control">
+            </div>
+
+            <!-- Chọn ảnh từ Unsplash -->
+            <div class="form-group mb-3" id="selectInput" style="display: none;">
+                <label class="form-label">Chọn hình ảnh:</label>
+                <div class="image-grid">
+                    @if (unsplashImages != null)
+                    {
+                        @foreach (var imageUrl in unsplashImages)
+                        {
+                            <img src="@imageUrl" class="img img-fluid selectable-image" onclick="selectImage('@imageUrl')">
+                        }
+                    }
+                </div>
+            </div>
+
+
+
+
             <div class="form-group">
                 <label asp-for="ProductId" class="form-label"></label>
-                <select asp-for="ProductId" class ="form-control" asp-items="ViewBag.ProductId"></select>
+                <select asp-for="ProductId" class="form-select" asp-items="ViewBag.ProductId"></select>
+                <span asp-validation-for="ProductId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
+    </div>
+    <div class="col-md">
+        <!-- Preview ảnh -->
+        <div class="mb-3">
+            <label>Preview:</label>
+            <img id="imagePreview" src="@Model?.ImageUrl" alt="Preview"
+                style="max-width: 500px;max-height: 500px; display: block; border: 1px solid #ccc; padding: 5px;">
+        </div>
+        <!-- Thumbnails ảnh -->
+        @* @if (Model.ProductImages != null)
+        {
+            @foreach (var imageUrl in Model.ProductImages)
+            {
+                <img src="@imageUrl.ImageUrl" class="img custom-image-thumbnail img-fluid">
+            }
+        } *@
+        @* <label asp-for="ProductImages" class="form-control"></label> *@
     </div>
 </div>
 
@@ -33,5 +94,8 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        await Html.RenderPartialAsync("_HandleImageScriptsPartial");
+    }
 }

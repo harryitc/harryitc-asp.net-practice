@@ -25,6 +25,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Đăng ký Service
 builder.Services.AddHttpClient<IImageService, UnsplashService>();
+builder.Services.AddScoped<ImageUploadService>();
 
 var app = builder.Build();
 

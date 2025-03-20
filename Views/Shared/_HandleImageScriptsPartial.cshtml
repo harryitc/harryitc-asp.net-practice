@@ -1,0 +1,83 @@
+﻿<style>
+    .image-grid img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        margin: 5px;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+    .image-grid img.selected {
+        border: 2px solid blue;
+    }
+
+    .custom-image-thumbnail {
+        width: 200px;
+        max-height: 302px;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const imageUrlInput = document.querySelector("input[name='__imageUrl']");
+        const imageFileInput = document.querySelector("input[name='ImageFile']");
+        const imagePreview = document.getElementById("imagePreview");
+
+        const urlRadio = document.querySelector("input[value='url']");
+        const uploadRadio = document.querySelector("input[value='upload']");
+        const selectRadio = document.querySelector("input[value='select']");
+
+        const urlInput = document.getElementById("urlInput");
+        const uploadInput = document.getElementById("uploadInput");
+        const selectInput = document.getElementById("selectInput");
+
+
+        function updatePreview() {
+            if (urlRadio.checked) {
+                // Cập nhật preview theo URL nhập vào
+                imagePreview.src = imageUrlInput.value;
+                document.getElementById('ImageUrl').value = imageUrlInput.value;
+            } else if (uploadRadio.checked) {
+                // Cập nhật preview theo file upload
+                const file = imageFileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.src = e.target.result;
+                        document.getElementById('ImageUrl').value = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function toggleInputs() {
+            urlInput.style.display = urlRadio.checked ? "block" : "none";
+            uploadInput.style.display = uploadRadio.checked ? "block" : "none";
+            selectInput.style.display = selectRadio.checked ? "block" : "none";
+        }
+
+        function selectImage(url) {
+            imagePreview.src = url;
+            document.getElementById('ImageUrl').value = url;
+            imageUrlInput.value = url;
+            document.querySelectorAll(".selectable-image").forEach(img => img.classList.remove("selected"));
+            event.target.classList.add("selected");
+        }
+
+        // Gán sự kiện cho các input
+        imageUrlInput.addEventListener("input", updatePreview);
+        imageFileInput.addEventListener("change", updatePreview);
+        urlRadio.addEventListener("change", toggleInputs);
+        uploadRadio.addEventListener("change", toggleInputs);
+        selectRadio.addEventListener("change", toggleInputs);
+
+        // Định nghĩa hàm chọn ảnh từ Unsplash
+        window.selectImage = selectImage;
+
+        // Thiết lập trạng thái ban đầu
+        toggleInputs();
+    });
+</script>
