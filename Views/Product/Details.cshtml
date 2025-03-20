@@ -1,45 +1,377 @@
 ﻿@model Product
 
 @{
-    ViewData["Title"] = "Chi tiết sản phẩm";
+    ViewData["Title"] = Model.Name;
 }
 
-<h1>@ViewData["Title"]</h1>
-
-    <hr/>
-    <dl class="row">
-        <dt class = "col-sm-2">
-        @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-        @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-        @Html.DisplayNameFor(model => model.Price)
-        </dt>
-        <dd class = "col-sm-10">
-        @Html.DisplayFor(model => model.Price)
-        </dd>
-        <dt class = "col-sm-2">
-        @Html.DisplayNameFor(model => model.ImageUrl)
-        </dt>
-        <dd class = "col-sm-10">
-        @Html.DisplayFor(model => model.ImageUrl)
-        </dd>
-        <dt class = "col-sm-2">
-        @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-        @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-        @Html.DisplayNameFor(model => model.Category)
-        </dt>
-        <dd class = "col-sm-10">
-        @Html.DisplayFor(model => model.Category.Name)
-        </dd>
-    </dl>
-<div>
-    <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a class="btn btn-dark" asp-action="Index">Back to List</a>
+<div class="d-flex align-items-center" style="gap: 20px;">
+    <h1>@ViewData["Title"]</h1>
+    <div>
+        @if (Context.Session.GetString("UserRole") == RoleUser.Admin)
+        {
+            <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> <span> | </span>
+        }
+        <a class="btn btn-dark" asp-action="Index">Back to List</a>
+    </div>
 </div>
+<hr />
+
+
+<div class="row">
+    <!-- Product Image & Thumbnails -->
+    <div class="col-md-6 d-flex">
+        @if (Model.ProductImages != null && Model.ProductImages.Count > 0)
+        {
+            <div class="thumbnail-container d-flex flex-column me-3">
+                <button class="nav-arrow top" onclick="scrollThumbnails(-1)">&#9650;</button>
+                <div class="thumbnail-column" id="thumbnailColumn">
+                    <div class="thumbnail-item">
+                        <img src="@Model.ImageUrl" onclick="changeImage(this.src)" alt="Thumbnail">
+                    </div>
+                    @if (Model.ProductImages != null)
+                    {
+                        @foreach (var image in Model.ProductImages)
+                        {
+                            <div class="thumbnail-item">
+                                <img src="@image.ImageUrl" onclick="changeImage(this.src)" alt="Thumbnail">
+                            </div>
+                        }
+                    }
+                </div>
+                <button class="nav-arrow bottom" onclick="scrollThumbnails(1)">&#9660;</button>
+            </div>
+        }
+
+        <div class="product-image-container border img-zoom-container">
+            <img src="@Model.ImageUrl" alt="@Model.Name" class="product-image img-fluid" id="mainImage">
+            <div id="myresult" class="img-zoom-result position-absolute"></div>
+        </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="col-md-6">
+        <h2>@Model.Name</h2>
+        <p class="text-muted">Khoảng cách: 0.4 km</p>
+        <div class="d-flex align-items-center">
+            <span class="price">@Model.Price.ToString("N0")đ</span>
+            @* <span class="original-price">@(Model.OriginalPrice.ToString("N0"))đ</span> *@
+            <span class="discount ms-2">(-@Model.Discount%)</span>
+        </div>
+
+        <div class="alert alert-info">
+            <p>Quà tặng kèm</p>
+            <p>① @Model.Promotion</p>
+        </div>
+
+        <button class="btn btn-lg btn-primary mt-3">
+            <i class="fas fa-cart-plus"></i> MUA NGAY
+        </button>
+        <p class="mt-3 fw-bold">Giao hàng miễn phí tại chỗ</p>
+        <ul class="list-unstyled mt-2">
+            <li><i class="fas fa-check text-success"></i> Bảo hành chính hãng 24 tháng.</li>
+            <li><i class="fas fa-check text-success"></i> Hỗ trợ đổi trả trong 7 ngày.</li>
+            <li><i class="fas fa-check text-success"></i> Miễn phí giao hàng toàn quốc.</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+    .product-image {
+        max-width: 100%;
+        height: auto;
+        max-height: 31rem;
+        transition: opacity 0.3s ease-in-out;
+        /* Animation mượt khi đổi ảnh */
+    }
+
+    /* Giá sản phẩm */
+    .price {
+        font-size: 1.5rem;
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #6c757d;
+        margin-left: 10px;
+    }
+
+    .discount {
+        color: #dc3545;
+        font-size: 0.9rem;
+    }
+
+    /* Hộp khuyến mãi */
+    .promo-box {
+        background-color: #ffebee;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+
+    /* Nút mua ngay */
+    .btn-buy {
+        background-color: #dc3545;
+        color: white;
+        font-weight: bold;
+        padding: 10px 20px;
+    }
+
+    .btn-buy:hover {
+        background-color: #c82333;
+        color: white;
+    }
+
+    /* Container chứa thumbnail */
+    .thumbnail-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        max-height: 400px;
+        overflow: hidden;
+        margin-right: 15px;
+        /* Tạo khoảng cách với ảnh chính */
+        position: relative;
+        /* Để căn chỉnh nút cuộn */
+    }
+
+    /* Danh sách thumbnail dạng cột */
+    .thumbnail-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow-y: hidden;
+        overflow-x: hidden;
+        max-height: 400px;
+        /* Giới hạn chiều cao để cuộn */
+        scroll-behavior: smooth;
+        /* Cuộn mượt */
+    }
+
+    /* Ảnh trong thumbnail */
+    .thumbnail-item img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 2px solid #ddd;
+        transition: border 0.3s, transform 0.2s;
+    }
+
+    .thumbnail-item img:hover {
+        border: 2px solid #007bff;
+        /* Đổi màu viền khi chọn */
+        transform: scale(1.1);
+    }
+
+    /* Khi ảnh được chọn */
+    .thumbnail-item img.active {
+        border: 2px solid #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        transform: scale(1.1);
+    }
+
+    /* Container chứa ảnh sản phẩm */
+    .product-image-container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Nút cuộn thumbnail */
+    .nav-arrow {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 5px 10px;
+        border-radius: 5px;
+        transition: background 0.3s, transform 0.2s;
+
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+    }
+
+    .nav-arrow:hover {
+        background-color: rgba(0, 0, 0, 0.8);
+        transform: translateX(-50%) scale(1.1);
+    }
+
+    /* Vị trí nút */
+    .nav-arrow.top {
+        top: -15px;
+    }
+
+    .nav-arrow.bottom {
+        bottom: -15px;
+    }
+
+
+    .img-zoom-container {
+        position: relative;
+    }
+
+    .img-zoom-lens {
+        position: absolute;
+        border: 1px solid #d4d4d4;
+        /*set the size of the lens:*/
+        width: 40px;
+        height: 40px;
+    }
+
+    .img-zoom-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .img-zoom-result {
+        position: absolute;
+        z-index: 1;
+        border: 2px solid #d4d4d4;
+        width: 200px;
+        height: 200px;
+        pointer-events: none;
+        /* Không chặn thao tác */
+        display: none;
+        /* Ẩn trước khi hover */
+    }
+</style>
+
+<script>
+    let zoomInitialized = false; // Biến kiểm tra đã kích hoạt zoom hay chưa
+
+    function imageZoom(imgID, resultID) {
+        var img, lens, result, cx, cy;
+        img = document.getElementById(imgID);
+        result = document.getElementById(resultID);
+
+        // Kiểm tra nếu đã có thấu kính, không tạo lại
+        if (zoomInitialized) {
+            result.style.backgroundImage = "url('" + img.src + "')";
+            return;
+        }
+
+        // Tạo thấu kính
+        lens = document.createElement("DIV");
+        lens.setAttribute("class", "img-zoom-lens");
+        img.parentElement.insertBefore(lens, img);
+
+        // Tính tỷ lệ phóng đại
+        cx = 200 / lens.offsetWidth;
+        cy = 200 / lens.offsetHeight;
+
+        // Thiết lập nền ảnh phóng to
+        result.style.backgroundImage = "url('" + img.src + "')";
+        result.style.backgroundSize = (img.width * cx) + "px " + (img.height * cy) + "px";
+
+        // Thêm sự kiện di chuột
+        lens.addEventListener("mousemove", moveLens);
+        img.addEventListener("mousemove", moveLens);
+        lens.addEventListener("touchmove", moveLens);
+        img.addEventListener("touchmove", moveLens);
+
+        function moveLens(e) {
+            var pos, x, y;
+            e.preventDefault();
+            pos = getCursorPos(e);
+
+            x = pos.x - (lens.offsetWidth / 2);
+            y = pos.y - (lens.offsetHeight / 2);
+
+            if (x > img.width - lens.offsetWidth) { x = img.width - lens.offsetWidth; }
+            if (x < 0) { x = 0; }
+            if (y > img.height - lens.offsetHeight) { y = img.height - lens.offsetHeight; }
+            if (y < 0) { y = 0; }
+
+            // Cập nhật vị trí của thấu kính và hình zoom
+            lens.style.left = x + "px";
+            lens.style.top = y + "px";
+
+            result.style.left = x + 40 + "px";
+            result.style.top = y + 40 + "px";
+            result.style.display = "block";
+            result.style.backgroundPosition = "-" + (x * cx) + "px -" + (y * cy) + "px";
+        }
+
+        function getCursorPos(e) {
+            var a, x = 0, y = 0;
+            e = e || window.event;
+            /*get the x and y positions of the image:*/
+            a = img.getBoundingClientRect();
+            /*calculate the cursor's x and y coordinates, relative to the image:*/
+            x = e.pageX - a.left;
+            y = e.pageY - a.top;
+            /*consider any page scrolling:*/
+            x = x - window.pageXOffset;
+            y = y - window.pageYOffset;
+            return { x: x, y: y };
+        }
+
+        // Ẩn khi rời chuột khỏi ảnh
+        img.addEventListener("mouseleave", () => { result.style.display = "none"; });
+
+        zoomInitialized = true; // Đánh dấu đã kích hoạt zoom
+    }
+
+    // Sự kiện chọn ảnh từ thumbnail
+    function changeImage(src) {
+        // let mainImage = document.getElementById("mainImage");
+        // mainImage.src = src;
+        // imageZoom("mainImage", "myresult");
+
+        // Gọi lại imageZoom để cập nhật ảnh zoom
+    }
+
+</script>
+
+<script>
+    let scrollPosition = 0;
+    const thumbnailColumn = document.getElementById('thumbnailColumn');
+    const mainImage = document.getElementById('mainImage');
+    const thumbnails = document.querySelectorAll('.thumbnail-item img');
+    const itemHeight = 90; // Chiều cao mỗi thumbnail (bao gồm margin)
+    const scrollAmount = itemHeight * 2; // Cuộn 2 ảnh một lần
+
+    function scrollThumbnails(direction) {
+        const maxScroll = thumbnailColumn.scrollHeight - thumbnailColumn.clientHeight;
+        scrollPosition += direction * scrollAmount;
+        scrollPosition = Math.max(0, Math.min(scrollPosition, maxScroll));
+
+        thumbnailColumn.scrollTo({
+            top: scrollPosition,
+            behavior: 'smooth' // Thêm hiệu ứng cuộn mượt
+        });
+    }
+
+    // Đổi ảnh chính khi nhấn vào thumbnail
+    thumbnails.forEach(thumbnail => {
+        thumbnail.addEventListener('click', function () {
+            // Bỏ class active ở ảnh cũ
+            thumbnails.forEach(img => img.classList.remove('active'));
+            // Thêm class active vào ảnh mới
+            this.classList.add('active');
+
+            // Hiệu ứng fade-in khi đổi ảnh
+            mainImage.style.opacity = 0;
+            setTimeout(() => {
+                mainImage.src = this.src;
+                mainImage.style.opacity = 1;
+                // Initiate zoom effect:
+                imageZoom("mainImage", "myresult");
+            }, 200);
+        });
+    });
+
+    // Mặc định ảnh đầu tiên được chọn
+    thumbnails[0].classList.add('active');
+    imageZoom("mainImage", "myresult");
+
+
+</script>

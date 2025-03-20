@@ -2,93 +2,150 @@
 
 @{
     ViewData["Title"] = "Sản phẩm";
-    var categories = ViewBag.Category as Category[];
+    var categories = ViewData["Categories"] as Category[];
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<p>
-</p>
-<a asp-action="Create" class="btn btn-dark mb-4">
-    <i class="fa-solid fa-plus"></i> Thêm sản phẩm
-</a>
+@if (Context.Session.GetString("UserRole") == RoleUser.Admin)
+{
+    <a asp-action="Create" class="btn btn-dark mb-4">
+        <i class="fa-solid fa-plus"></i> Thêm sản phẩm
+    </a>
+}
 
-<style>
-            .custom-col {
-            padding-top: calc(var(--bs-gutter-x)* .5);
-            padding-bottom: calc(var(--bs-gutter-x)* .5);
-        }
 
-        .vote-star i {
-            font-size: 14px;
-        }
+<div class="row mb-5">
+    <div class="col-lg-9">
+        <form asp-controller="Product" asp-action="Filter" method="get">
+            <div class="row">
+                <div class="col-4">
+                    @* <label for="" class="form-label">Tìm sản phẩm:</label> *@
+                    <input class="form-control" type="text" name="name" placeholder="Tìm kiếm sản phẩm" />
+                </div>
+                @if (categories != null)
+                {
+                    <div class="col-4">
+                        <select class="form-select" name="categoryId">
+                            <option value="">Chọn danh mục</option>
+                            @foreach (var category in categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+                    </div>
+                }
+                <div class="col-2">
+                    <input class="form-control" type="number" name="minPrice" placeholder="Giá từ" />
 
-        .card>img {
-            height: 160px;
-        }
+                </div>
+                <div class="col-2">
+                    <input class="form-control" type="number" name="maxPrice" placeholder="Giá đến" />
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-dark px-3" type="submit">
+                        <i class="fa-solid fa-filter"></i> Lọc
+                    </button>
+                </div>
+            </div>
 
-        .tools i {
-            padding: 8px;
-            color: white;
-        }
-        .tools i:hover {
-            background: rgb(73, 73, 73);
-        }
-        .card:hover .tools {
-            display: flex;
-        }
-        .tools {
-            display: none;
-            gap: 6px;
-            flex-direction: column;
-            position: absolute;
-            right: 10px;
-            top: 10px;
-        }
-</style>
 
+            @* <label>
+                <input type="checkbox" name="isDiscount" value="true" /> Chỉ hiển thị sản phẩm có giảm giá
+            </label> *@
+        </form>
+    </div>
+</div>
 
 <div class="row">
     @foreach (var item in Model)
     {
-                            <div class="col-auto custom-col">
-                                <div class="card shadow" style="width: 15rem;">
-                                        <img loading="lazy" src=@Html.DisplayFor(modelItem => item.ImageUrl)
-                                            class="card-img-top object-fit-cover" alt="...">
-                                            <div class="tools">
-                                                    <a asp-action="Edit" asp-route-id="@item.Id">
-                                                <i class="fa-solid fa-pen-to-square myTooltip" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Chỉnh sửa"></i>
-                                                    </a>
-                                                        <a asp-action="Details" asp-route-id="@item.Id">
-                                                <i class="fa-solid fa-eye myTooltip" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Chi tiết"></i>
-                                                        </a>
-                                                        <a asp-action="Delete" asp-route-id="@item.Id">
-                                                <i class="fa-solid fa-trash myTooltip" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Xóa"></i>
+        <div class="col-auto custom-col">
+            <div class="card shadow" style="width: 15rem;">
+                <img loading="lazy" src=@Html.DisplayFor(modelItem => item.ImageUrl) class="card-img-top object-fit-cover"
+                    alt="...">
+                <div class="tools">
+                    @* @if (Context.Session.GetString("UserRole") == RoleUser.Admin)
+                    { *@
+                        <a asp-action="Edit" asp-route-id="@item.Id">
+                            <i class="fa-solid fa-pen-to-square myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
+                                data-bs-title="Chỉnh sửa"></i>
+                        </a>
+                    @* } *@
+                    <a asp-action="Details" asp-route-id="@item.Id">
+                        <i class="fa-solid fa-eye myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
+                            data-bs-title="Chi tiết"></i>
+                    </a>
+                    @if (Context.Session.GetString("UserRole") == RoleUser.Admin)
+                    {
+                        <a asp-action="Delete" asp-route-id="@item.Id">
+                            <i class="fa-solid fa-trash myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
+                                data-bs-title="Xóa"></i>
 
-                                                        </a>
-                                             </div>
-                                    <div class="card-body">
-                                            <h5 class="card-title">@Html.DisplayFor(modelItem => item.Name)</h5>
-                                        <!-- <p class="card-text">Some quick example text to build on the card title and make up the
-                                            bulk of
-                                            the card's content.</p> -->
-                                            <h3><span class="fw-bold ">$@Html.DisplayFor(modelItem => item.Price)</span></h3>
-                                            <p class="text-muted">@Html.DisplayFor(modelItem => item.Description)</p>
-                                        <div class="mb-4 vote-star">
-                                            <i class="text-warning fas fa-star"></i>
-                                            <i class="text-warning fas fa-star"></i>
-                                            <i class="text-warning fas fa-star"></i>
-                                            <i class="text-warning fas fa-star"></i>
-                                            <i class="text-warning fas fa-star-half-alt"></i>
-                                            <span class="total-rating">(20 lượt mua)</span>
-                                        </div>
-                                        <a href="#" class="btn btn-outline-success">
-                                            <i class="fa-solid fa-cart-plus"></i></a>
-                                        <a href="#" class="btn btn-primary ms-2 px-4">
-                                            Mua ngay
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                        </a>
+
+                    }
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">@Html.DisplayFor(modelItem => item.Name)</h5>
+                    <!-- <p class="card-text">Some quick example text to build on the card title and make up the
+                                                                                                                bulk of
+                                                                                                                the card's content.</p> -->
+                    <h3><span class="fw-bold ">@item.Price.ToString("N0")đ</span></h3>
+                    <p class="text-muted">@Html.DisplayFor(modelItem => item.Description)</p>
+                    <div class="mb-4 vote-star">
+                        <i class="text-warning fas fa-star"></i>
+                        <i class="text-warning fas fa-star"></i>
+                        <i class="text-warning fas fa-star"></i>
+                        <i class="text-warning fas fa-star"></i>
+                        <i class="text-warning fas fa-star-half-alt"></i>
+                        <span class="total-rating">(20 lượt mua)</span>
+                    </div>
+                    <a href="#" class="btn btn-outline-success">
+                        <i class="fa-solid fa-cart-plus"></i></a>
+                    <a href="#" class="btn btn-primary ms-2 px-4">
+                        Mua ngay
+                    </a>
+                </div>
+            </div>
+        </div>
     }
 </div>
+
+
+<style>
+    .custom-col {
+        padding-top: calc(var(--bs-gutter-x)* .5);
+        padding-bottom: calc(var(--bs-gutter-x)* .5);
+    }
+
+    .vote-star i {
+        font-size: 14px;
+    }
+
+    .card>img {
+        height: 160px;
+    }
+
+    .tools i {
+        padding: 8px;
+        color: white;
+    }
+
+    .tools i:hover {
+        background: rgb(73, 73, 73);
+    }
+
+    .card:hover .tools {
+        display: flex;
+    }
+
+    .tools {
+        display: none;
+        gap: 6px;
+        flex-direction: column;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
+</style>

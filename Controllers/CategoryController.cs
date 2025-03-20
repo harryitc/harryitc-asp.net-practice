@@ -10,7 +10,7 @@ using FlowerShop.Repository;
 
 namespace FlowerShop.Controllers
 {
-    public class CategoryController : BaseController
+    public class CategoryController : Controller
     {
         private readonly ICategoryRepository _categoryRepository;
 

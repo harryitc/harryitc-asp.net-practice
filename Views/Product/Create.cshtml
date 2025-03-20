@@ -12,47 +12,47 @@
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create" method="post" enctype="multipart/form-data">
-                <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model?.ImageUrl" />
+            <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model?.ImageUrl" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
+                <label asp-for="Name" class="form-control"></label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Price" class="control-label"></label>
+                <label asp-for="Price" class="form-control"></label>
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
             @* <div class="form-group"> *@
-            @*     <label asp-for="ImageUrl" class="control-label"></label> *@
+            @*     <label asp-for="ImageUrl" class="form-control"></label> *@
             @*     <input asp-for="ImageUrl" class="form-control" /> *@
             @*     <span asp-validation-for="ImageUrl" class="text-danger"></span> *@
             @* </div> *@
 
-               <div class="form-group">
-        <label>Chọn cách nhập ảnh</label>
-        <div>
-            <input type="radio" name="imageOption" value="url" checked> Nhập URL
-            <input type="radio" name="imageOption" value="upload"> Upload
-            <input type="radio" name="imageOption" value="select"> Chọn từ danh sách
-        </div>
-    </div>
+            <div class="form-group">
+                <label class="form-control" asp-for="ImageUrl"></label>
+                <div>
+                    <input type="radio" name="imageOption" value="url" checked> Nhập URL
+                    <input type="radio" name="imageOption" value="upload"> Upload
+                    <input type="radio" name="imageOption" value="select"> Chọn từ danh sách
+                </div>
+            </div>
 
-    <!-- Nhập URL ảnh -->
-    <div class="form-group" id="urlInput">
-        <input type="text" name="__imageUrl" class="form-control" placeholder="Nhập URL hình ảnh">
-    </div>
+            <!-- Nhập URL ảnh -->
+            <div class="form-group" id="urlInput">
+                <input type="text" name="__imageUrl" class="form-control" placeholder="Nhập URL hình ảnh">
+            </div>
 
-    <!-- Upload ảnh -->
-    <div class="form-group" id="uploadInput" style="display: none;">
-        <input type="file" name="ImageFile" class="form-control">
-    </div>
+            <!-- Upload ảnh -->
+            <div class="form-group" id="uploadInput" style="display: none;">
+                <input type="file" name="ImageFile" class="form-control">
+            </div>
 
-    <!-- Chọn ảnh từ Unsplash -->
-    <div class="form-group" id="selectInput" style="display: none;">
-        <label>Chọn hình ảnh:</label>
-        <div class="image-grid">
+            <!-- Chọn ảnh từ Unsplash -->
+            <div class="form-group" id="selectInput" style="display: none;">
+                <label>Chọn hình ảnh:</label>
+                <div class="image-grid">
                     @if (unsplashImages != null)
                     {
                         @foreach (var imageUrl in unsplashImages)
@@ -60,23 +60,24 @@
                             <img src="@imageUrl" class="selectable-image" onclick="selectImage('@imageUrl')">
                         }
                     }
-        </div>
-    </div>
+                </div>
+            </div>
 
-    <!-- Preview ảnh -->
-    <div class="form-group">
-        <label>Preview:</label>
-        <img id="imagePreview" src="@Model?.ImageUrl" alt="Preview" style="max-width: 300px; display: block; border: 1px solid #ccc; padding: 5px;">
-    </div>
+            <!-- Preview ảnh -->
+            <div class="form-group">
+                <label>Preview:</label>
+                <img id="imagePreview" src="@Model?.ImageUrl" alt="Preview"
+                    style="max-width: 300px; display: block; border: 1px solid #ccc; padding: 5px;">
+            </div>
 
             <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
+                <label asp-for="Description" class="form-control"></label>
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class ="form-control" asp-items="ViewBag.CategoryId"></select>
+                <label asp-for="CategoryId" class="form-control"></label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
@@ -96,78 +97,79 @@
 }
 
 <style>
-.image-grid img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    margin: 5px;
-    cursor: pointer;
-    border: 2px solid transparent;
-}
+    .image-grid img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        margin: 5px;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
 
-.image-grid img.selected {
-    border: 2px solid blue;
-}
+    .image-grid img.selected {
+        border: 2px solid blue;
+    }
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const imageUrlInput = document.querySelector("input[name='__imageUrl']");
-    const imageFileInput = document.querySelector("input[name='ImageFile']");
-    const imagePreview = document.getElementById("imagePreview");
+    document.addEventListener("DOMContentLoaded", function () {
+        const imageUrlInput = document.querySelector("input[name='__imageUrl']");
+        const imageFileInput = document.querySelector("input[name='ImageFile']");
+        const imagePreview = document.getElementById("imagePreview");
 
-    const urlRadio = document.querySelector("input[value='url']");
-    const uploadRadio = document.querySelector("input[value='upload']");
-    const selectRadio = document.querySelector("input[value='select']");
-    
-    const urlInput = document.getElementById("urlInput");
-    const uploadInput = document.getElementById("uploadInput");
-    const selectInput = document.getElementById("selectInput");
+        const urlRadio = document.querySelector("input[value='url']");
+        const uploadRadio = document.querySelector("input[value='upload']");
+        const selectRadio = document.querySelector("input[value='select']");
+
+        const urlInput = document.getElementById("urlInput");
+        const uploadInput = document.getElementById("uploadInput");
+        const selectInput = document.getElementById("selectInput");
 
 
-    function updatePreview() {
-        if (urlRadio.checked) {
-            // Cập nhật preview theo URL nhập vào
-            imagePreview.src = imageUrlInput.value;
-        document.getElementById('ImageUrl').value = imageUrlInput.value;
-        } else if (uploadRadio.checked) {
-            // Cập nhật preview theo file upload
-            const file = imageFileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    document.getElementById('ImageUrl').value = e.target.result;
-                };
-                reader.readAsDataURL(file);
+        function updatePreview() {
+            if (urlRadio.checked) {
+                // Cập nhật preview theo URL nhập vào
+                imagePreview.src = imageUrlInput.value;
+                document.getElementById('ImageUrl').value = imageUrlInput.value;
+            } else if (uploadRadio.checked) {
+                // Cập nhật preview theo file upload
+                const file = imageFileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.src = e.target.result;
+                        document.getElementById('ImageUrl').value = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
         }
-    }
 
-    function toggleInputs() {
-        urlInput.style.display = urlRadio.checked ? "block" : "none";
-        uploadInput.style.display = uploadRadio.checked ? "block" : "none";
-        selectInput.style.display = selectRadio.checked ? "block" : "none";
-    }
+        function toggleInputs() {
+            urlInput.style.display = urlRadio.checked ? "block" : "none";
+            uploadInput.style.display = uploadRadio.checked ? "block" : "none";
+            selectInput.style.display = selectRadio.checked ? "block" : "none";
+        }
 
-    function selectImage(url) {
-        imagePreview.src = url;
-        imageUrlInput.value = url;
-        document.querySelectorAll(".selectable-image").forEach(img => img.classList.remove("selected"));
-        event.target.classList.add("selected");
-    }
+        function selectImage(url) {
+            imagePreview.src = url;
+            imageUrlInput.value = url;
+            document.getElementById('ImageUrl').value = url;
+            document.querySelectorAll(".selectable-image").forEach(img => img.classList.remove("selected"));
+            event.target.classList.add("selected");
+        }
 
-    // Gán sự kiện cho các input
-    imageUrlInput.addEventListener("input", updatePreview);
-    imageFileInput.addEventListener("change", updatePreview);
-    urlRadio.addEventListener("change", toggleInputs);
-    uploadRadio.addEventListener("change", toggleInputs);
-    selectRadio.addEventListener("change", toggleInputs);
+        // Gán sự kiện cho các input
+        imageUrlInput.addEventListener("input", updatePreview);
+        imageFileInput.addEventListener("change", updatePreview);
+        urlRadio.addEventListener("change", toggleInputs);
+        uploadRadio.addEventListener("change", toggleInputs);
+        selectRadio.addEventListener("change", toggleInputs);
 
-    // Định nghĩa hàm chọn ảnh từ Unsplash
-    window.selectImage = selectImage;
+        // Định nghĩa hàm chọn ảnh từ Unsplash
+        window.selectImage = selectImage;
 
-    // Thiết lập trạng thái ban đầu
-    toggleInputs();
-});
+        // Thiết lập trạng thái ban đầu
+        toggleInputs();
+    });
 </script>

@@ -1,6 +1,7 @@
 ﻿public class MenuItem
 {
-    public string Title { get; set; }
-    public string Controller { get; set; }
-    public string Action { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Controller { get; set; } = string.Empty;
+    public string Action { get; set; } = string.Empty;
+    public string[] Roles { get; set; } = new string[] {}; // Mảng quyền
 }

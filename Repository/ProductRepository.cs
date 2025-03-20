@@ -1,11 +1,12 @@
 ﻿using FlowerShop.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.TextTemplating;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FlowerShop.Repository
 {
-    public class ProductRepository : IRepository<Product>
+    public class ProductRepository : IProductRepository
     {
         private readonly ApplicationDbContext _context;
 
@@ -16,17 +17,18 @@ namespace FlowerShop.Repository
 
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            return await _context.Products.ToListAsync();
+            return await _context.Products.Include(p => p.ProductImages).ToListAsync();
         }
 
-        public async Task<Product> GetByIdAsync(int id)
+        public async Task<Product?> GetByIdAsync(int id)
         {
-            return await _context.Products.FindAsync(id);
+            return await _context.Products.Include(p => p.ProductImages)
+                                          .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task AddAsync(Product product)
         {
-            await _context.Products.AddAsync(product);
+            _context.Products.Add(product);
             await _context.SaveChangesAsync();
         }
 
@@ -45,5 +47,39 @@ namespace FlowerShop.Repository
                 await _context.SaveChangesAsync();
             }
         }
+
+        // ⭐ Hàm lọc sản phẩm ⭐
+        public async Task<IEnumerable<Product>> FilterProducts(string? name, int? categoryId, decimal? minPrice, decimal? maxPrice, bool? isDiscount)
+        {
+            var query = _context.Products.Include(p => p.Category).AsQueryable();
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(p => p.Name.Contains(name));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p => p.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p => p.Price <= maxPrice.Value);
+            }
+
+            if (isDiscount.HasValue && isDiscount.Value)
+            {
+                query = query.Where(p => p.Discount > 0);
+            }
+
+            return query.ToList();
+        }
     }
+
 }

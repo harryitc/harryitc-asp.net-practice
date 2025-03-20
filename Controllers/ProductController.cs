@@ -8,16 +8,16 @@ using FlowerShop.Controllers;
 using FlowerShop.Repository;
 using FlowerShop.Services;
 
-public class ProductController : BaseController
+public class ProductController : Controller
 {
-    private readonly IRepository<Product> _productRepository;
+    private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IImageService _imageService;
     private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly UnsplashService _unsplashService;
 
     public ProductController(
-        IRepository<Product> productRepository,
+        IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         IWebHostEnvironment webHostEnvironment,
         IImageService imageService)
@@ -31,10 +31,17 @@ public class ProductController : BaseController
     // GET: Product
     public async Task<IActionResult> Index()
     {
+        ViewData["Categories"] = await _categoryRepository.GetAllAsync();
         var products = await _productRepository.GetAllAsync();
-        var categories = await _categoryRepository.GetAllAsync();
-        ViewBag.Category = new SelectList(categories, "Id", "Name");
         return View(products);
+    }
+
+    // ⭐ Action lọc sản phẩm ⭐
+    public async Task<IActionResult> Filter(string? name, int? categoryId, decimal? minPrice, decimal? maxPrice, bool? isDiscount)
+    {
+        ViewData["Categories"] = await _categoryRepository.GetAllAsync();
+        var filteredProducts = await _productRepository.FilterProducts(name, categoryId, minPrice, maxPrice, isDiscount);
+        return View("Index", filteredProducts);
     }
 
     // GET: Product/Details/5
@@ -51,6 +58,12 @@ public class ProductController : BaseController
     // GET: Product/Create
     public async Task<IActionResult> Create()
     {
+
+        if (HttpContext.Session.GetString("UserRole") != "Admin")
+        {
+            return RedirectToAction("Unauthorized", "Auth");
+        }
+
         var categories = await _categoryRepository.GetAllAsync();
         ViewData["CategoryId"] = new SelectList(categories, "Id", "Name");
 
@@ -66,8 +79,7 @@ public class ProductController : BaseController
     public async Task<IActionResult> Create([Bind("Id,Name,Price,ImageUrl,Description,CategoryId")] Product product,
         IFormFile? ImageFile)
     {
-
-
+        Console.WriteLine(product);
         if (ModelState.IsValid)
         {
             // Nếu người dùng chọn upload file

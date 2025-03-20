@@ -20,12 +20,19 @@ public class UnsplashService : IImageService
 
     public async Task<List<string>> GetUnsplashImagesAsync(string query, int count)
     {
-        string url = $"https://api.unsplash.com/photos/random?query={query}&count={count}&client_id={_unsplashAccessKey}";
+        string url = $"https://api.unsplash.com/photos/random?query={query}&orientation=landscape&count={count}&client_id={_unsplashAccessKey}";
 
-        var response = await _httpClient.GetStringAsync(url);
-        var images = JArray.Parse(response);
+        try
+        {
+            var response = await _httpClient.GetStringAsync(url);
+            var images = JArray.Parse(response);
 
-        return images.Select(img => img["urls"]["small"].ToString()).ToList();
+            return images.Select(img => img["urls"]["small"].ToString()).ToList();
+        }
+        catch
+        {
+            return new List<string>();
+        }
     }
 }
 
