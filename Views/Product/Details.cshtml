@@ -7,11 +7,8 @@
 <div class="d-flex align-items-center" style="gap: 20px;">
     <h1>@ViewData["Title"]</h1>
     <div>
-        @if (Context.Session.GetString("UserRole") == RoleUser.Admin)
-        {
-            <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> <span> | </span>
-        }
-        <a class="btn btn-dark" asp-action="Index">Back to List</a>
+        <a class="btn btn-warning" asp-area="" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> <span> | </span>
+        <a class="btn btn-dark" asp-area="" asp-action="Index">Back to List</a>
     </div>
 </div>
 <hr />

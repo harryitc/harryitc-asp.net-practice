@@ -1,8 +1,6 @@
 ﻿@{
     var menuItems = Constants.MenuItems;
     var author = Constants.AUTHOR_NAME;
-
-    string? userRole = Context.Session.GetString("UserRole");
 }
 
 <!DOCTYPE html>
@@ -34,48 +32,15 @@
                     <ul class="navbar-nav flex-grow-1">
                         @foreach (var item in menuItems)
                         {
-                            if (item.Roles.Length == 0 || (userRole != null && item.Roles.Contains(userRole)))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="@item.Controller"
-                                        asp-action="@item.Action">
-                                        @item.Title
-                                    </a>
-                                </li>
-                            }
-                        }
-                    </ul>
-                    <ul class="navbar-nav flex-row flex-wrap ms-md-auto">
-                        @if (Context.Session.GetString("UserId") == null)
-                        {
-                            <li class="nav-item col-auto">
-                                <a class="nav-link py-2 px-2" asp-controller="Auth" asp-action="Login">
-                                    <i class="fa-solid fa-user"></i>
-                                    <small class="d-none d-lg-inline-block ms-2">Đăng nhập</small>
-                                </a>
-                            </li>
-                            <li class="nav-item col-auto">
-                                <a class="nav-link py-2 px-2" asp-controller="Auth" asp-action="Register">
-                                    <i class="fa-solid fa-user-plus"></i>
-                                    <small class="d-none d-lg-inline-block ms-2">Đăng ký</small>
-                                </a>
-                            </li>
-
-                        }
-                        else
-                        {
-                            <li class="nav-item col-auto">
-                                <a class="nav-link py-2 px-2" asp-controller="Auth" asp-action="Logout">
-                                    <i class="fa-solid fa-user-tie"></i>
-                                    @if (Context.Session.GetString("UserName") != null)
-                                    {
-                                        <span>Chào, @Context.Session.GetString("UserName")!</span>
-                                    }
-                                    <small class="ms-2">Đăng xuất</small>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="@item.Area" asp-controller="@item.Controller"
+                                    asp-action="@item.Action">
+                                    @item.Title
                                 </a>
                             </li>
                         }
                     </ul>
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>

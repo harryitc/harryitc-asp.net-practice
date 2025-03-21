@@ -7,6 +7,7 @@ using System.Linq;
 using FlowerShop.Controllers;
 using FlowerShop.Repository;
 using FlowerShop.Services;
+using Microsoft.AspNetCore.Authorization;
 
 public class ProductController : Controller
 {
@@ -59,15 +60,11 @@ public class ProductController : Controller
         return View(product);
     }
 
+
     // GET: Product/Create
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Create()
     {
-
-        if (HttpContext.Session.GetString("UserRole") != "Admin")
-        {
-            return RedirectToAction("Unauthorized", "Auth");
-        }
-
         var categories = await _categoryRepository.GetAllAsync();
         ViewData["CategoryId"] = new SelectList(categories, "Id", "Name");
 
@@ -80,6 +77,7 @@ public class ProductController : Controller
     // POST: Product/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Create([Bind("Id,Name,Price,ImageUrl,Description,CategoryId")] Product product,
         IFormFile? ImageFile)
     {
@@ -101,6 +99,7 @@ public class ProductController : Controller
     }
 
     // GET: Product/Edit/5
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
@@ -147,6 +146,7 @@ public class ProductController : Controller
     // POST: Product/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,ImageUrl,Description,CategoryId")] Product product,
         IFormFile? ImageFile
         )
@@ -178,6 +178,7 @@ public class ProductController : Controller
     }
 
     // GET: Product/Delete/5
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null) return NotFound();
@@ -191,6 +192,7 @@ public class ProductController : Controller
     // POST: Product/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         await _productRepository.DeleteAsync(id);
