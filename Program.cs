@@ -20,6 +20,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 
+// builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
+
 //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -69,18 +71,18 @@ app.MapRazorPages();
 
 app.MapStaticAssets();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-// app.UseEndpoints(endpoints =>
-// {
-//  endpoints.MapControllerRoute(
-//  name: "Admin",
-//  pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-//  endpoints.MapControllerRoute(
-//  name: "default",
-//  pattern: "{controller=Home}/{action=Index}/{id?}");
-// });
+// app.MapControllerRoute(
+//     name: "default",
+//     pattern: "{controller=Home}/{action=Index}/{id?}")
+//     .WithStaticAssets();
+app.UseEndpoints(endpoints =>
+{
+ endpoints.MapControllerRoute(
+ name: "Admin",
+ pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+ endpoints.MapControllerRoute(
+ name: "default",
+ pattern: "{controller=Home}/{action=Index}/{id?}");
+});
 
 app.Run();
