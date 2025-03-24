@@ -12,13 +12,11 @@
 
 <h1>@ViewData["Title"]</h1>
 
-@if(SignInManager.IsSignedIn(User))
-{
-<a asp-area="" asp-controller="Product" asp-action="Create" class="btn btn-dark mb-4">
-    <i class="fa-solid fa-plus"></i> Thêm sản phẩm
+@if (User.IsInRole(RoleUser.Admin)){
+    <a asp-area="" asp-controller="Product" asp-action="Create" class="btn btn-dark mt-4 mb-4">
+        <i class="fa-solid fa-plus"></i> Thêm sản phẩm
 </a>
 }
-
 
 <div class="row mb-5">
     <div class="col-lg-9">
@@ -70,22 +68,22 @@
                 <img loading="lazy" src=@Html.DisplayFor(modelItem => item.ImageUrl) class="card-img-top object-fit-cover"
                     alt="...">
                 <div class="tools">
-@if(SignInManager.IsSignedIn(User)){
+                @if (User.IsInRole(RoleUser.Admin)){
                     <a asp-area="" asp-action="Edit" asp-route-id="@item.Id">
                         <i class="fa-solid fa-pen-to-square myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
                             data-bs-title="Chỉnh sửa"></i>
                     </a>
-}
+                }
                     <a asp-area="" asp-action="Details" asp-route-id="@item.Id">
                         <i class="fa-solid fa-eye myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
                             data-bs-title="Chi tiết"></i>
                     </a>
-@if(SignInManager.IsSignedIn(User)){
+                @if (User.IsInRole(RoleUser.Admin)){
                     <a asp-area="" asp-action="Delete" asp-route-id="@item.Id">
                         <i class="fa-solid fa-trash myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
                             data-bs-title="Xóa"></i>
                     </a>
-}
+                }
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">@Html.DisplayFor(modelItem => item.Name)</h5>
