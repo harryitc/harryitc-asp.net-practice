@@ -3,5 +3,6 @@
     public string Title { get; set; } = string.Empty;
     public string Controller { get; set; } = string.Empty;
     public string Action { get; set; } = string.Empty;
-    public string[] Roles { get; set; } = new string[] {}; // Mảng quyền
+    public string Area { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
 }

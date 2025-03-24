@@ -7,6 +7,7 @@ using System.Linq;
 using FlowerShop.Controllers;
 using FlowerShop.Repository;
 using FlowerShop.Services;
+using Microsoft.AspNetCore.Authorization;
 
 public class ProductController : Controller
 {
@@ -59,15 +60,11 @@ public class ProductController : Controller
         return View(product);
     }
 
+
     // GET: Product/Create
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Create()
     {
-
-        if (HttpContext.Session.GetString("UserRole") != "Admin")
-        {
-            return RedirectToAction("Unauthorized", "Auth");
-        }
-
         var categories = await _categoryRepository.GetAllAsync();
         ViewData["CategoryId"] = new SelectList(categories, "Id", "Name");
 
@@ -80,6 +77,7 @@ public class ProductController : Controller
     // POST: Product/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Create([Bind("Id,Name,Price,ImageUrl,Description,CategoryId")] Product product,
         IFormFile? ImageFile)
     {
@@ -101,6 +99,7 @@ public class ProductController : Controller
     }
 
     // GET: Product/Edit/5
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
@@ -147,6 +146,7 @@ public class ProductController : Controller
     // POST: Product/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,ImageUrl,Description,CategoryId")] Product product,
         IFormFile? ImageFile
         )
@@ -178,6 +178,7 @@ public class ProductController : Controller
     }
 
     // GET: Product/Delete/5
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null) return NotFound();
@@ -191,6 +192,7 @@ public class ProductController : Controller
     // POST: Product/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles="Admin")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         await _productRepository.DeleteAsync(id);
@@ -202,48 +204,4 @@ public class ProductController : Controller
         var product = await _productRepository.GetByIdAsync(id);
         return product != null;
     }
-
-    [HttpGet("GetUnsplashImages")]
-    public async Task<IActionResult> GetUnsplashImages()
-    {
-        var images = await _imageService.GetUnsplashImagesAsync("flowers", 5);
-        return Ok(images);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> UploadImage(IFormFile file)
-    {
-        if (file == null || file.Length == 0)
-        {
-            return Json(new { success = false, message = "Không có file nào được chọn." });
-        }
-
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
-        if (!Directory.Exists(uploadsFolder))
-        {
-            Directory.CreateDirectory(uploadsFolder);
-        }
-
-        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        var imageUrl = "/uploads/" + fileName;
-        return Json(new { success = true, imageUrl });
-    }
-
-    private async Task<string> SaveImage(IFormFile image)
-    {
-        var savePath = Path.Combine("wwwroot/images", image.FileName); // Thay
-        using (var fileStream = new FileStream(savePath, FileMode.Create))
-        {
-            await image.CopyToAsync(fileStream);
-        }
-        return "/images/" + image.FileName;
-    }
-
 }

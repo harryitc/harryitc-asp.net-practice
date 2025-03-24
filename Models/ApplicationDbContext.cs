@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace FlowerShop.Models
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -11,10 +12,22 @@ namespace FlowerShop.Models
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            base.OnModelCreating(modelBuilder);
+
+            // Bỏ tiền tố AspNet của các bảng: mặc định
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                var tableName = entityType.GetTableName();
+                if (tableName.StartsWith("AspNet"))
+                {
+                    entityType.SetTableName(tableName.Substring(6));
+                }
+            }
+
             // Seed danh mục
             modelBuilder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Hoa Hồng" },
@@ -51,12 +64,12 @@ namespace FlowerShop.Models
                 new ProductImage { Id = 12, ProductId = 6, ImageUrl = "https://images.unsplash.com/photo-1476209446441-5ad72f223207" }
             );
 
-            // Seed người dùng
-            modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, FullName = "Admin", Email = "admin@example.com", Password = "admin123", Role = "Admin" },
-                new User { Id = 2, FullName = "Nguyễn Văn A", Email = "user1@example.com", Password = "user123", Role = "Customer" },
-                new User { Id = 3, FullName = "Trần Thị B", Email = "user2@example.com", Password = "user123", Role = "Customer" }
-            );
+            // // Seed người dùng
+            // modelBuilder.Entity<User>().HasData(
+            //     new User { Id = 1, FullName = "Admin", Email = "admin@example.com", Password = "admin123", Role = "Admin" },
+            //     new User { Id = 2, FullName = "Nguyễn Văn A", Email = "user1@example.com", Password = "user123", Role = "Customer" },
+            //     new User { Id = 3, FullName = "Trần Thị B", Email = "user2@example.com", Password = "user123", Role = "Customer" }
+            // );
         }
     }
 }

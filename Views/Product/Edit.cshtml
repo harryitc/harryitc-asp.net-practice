@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <form asp-area="" asp-action="Edit" method="post" enctype="multipart/form-data">
             <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model?.ImageUrl" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
@@ -93,7 +93,7 @@
 </div>
 
 <div>
-    <a class="btn btn-dark" asp-action="Index">Quay lại danh sách</a>
+    <a class="btn btn-dark" asp-area="" asp-action="Index">Quay lại danh sách</a>
 </div>
 
 @section Scripts {
