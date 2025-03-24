@@ -204,48 +204,4 @@ public class ProductController : Controller
         var product = await _productRepository.GetByIdAsync(id);
         return product != null;
     }
-
-    [HttpGet("GetUnsplashImages")]
-    public async Task<IActionResult> GetUnsplashImages()
-    {
-        var images = await _imageService.GetUnsplashImagesAsync("flowers", 5);
-        return Ok(images);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> UploadImage(IFormFile file)
-    {
-        if (file == null || file.Length == 0)
-        {
-            return Json(new { success = false, message = "Không có file nào được chọn." });
-        }
-
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
-        if (!Directory.Exists(uploadsFolder))
-        {
-            Directory.CreateDirectory(uploadsFolder);
-        }
-
-        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        var imageUrl = "/uploads/" + fileName;
-        return Json(new { success = true, imageUrl });
-    }
-
-    private async Task<string> SaveImage(IFormFile image)
-    {
-        var savePath = Path.Combine("wwwroot/images", image.FileName); // Thay
-        using (var fileStream = new FileStream(savePath, FileMode.Create))
-        {
-            await image.CopyToAsync(fileStream);
-        }
-        return "/images/" + image.FileName;
-    }
-
 }

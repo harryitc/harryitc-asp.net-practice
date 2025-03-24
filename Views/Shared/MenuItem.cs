@@ -4,4 +4,5 @@
     public string Controller { get; set; } = string.Empty;
     public string Action { get; set; } = string.Empty;
     public string Area { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
 }

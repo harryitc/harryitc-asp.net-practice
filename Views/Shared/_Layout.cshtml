@@ -32,12 +32,15 @@
                     <ul class="navbar-nav flex-grow-1">
                         @foreach (var item in menuItems)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="@item.Area" asp-controller="@item.Controller"
-                                    asp-action="@item.Action">
-                                    @item.Title
-                                </a>
-                            </li>
+                            if (string.IsNullOrEmpty(item.Role)|| User.IsInRole(item.Role))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="@item.Area" asp-controller="@item.Controller"
+                                        asp-action="@item.Action">
+                                        @item.Title
+                                    </a>
+                                </li>
+                            }
                         }
                     </ul>
                     <partial name="_LoginPartial" />
