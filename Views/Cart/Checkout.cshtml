@@ -1,0 +1,63 @@
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Thông tin giao hàng</h5>
+                <form asp-controller="Order" asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Họ tên người nhận</label>
+                        <input type="text" name="ShippingName" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" name="ShippingPhone" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Địa chỉ giao hàng</label>
+                        <textarea name="ShippingAddress" class="form-control" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea name="Note" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Đặt hàng
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Đơn hàng của bạn</h5>
+                @{
+                    var cart = Context.RequestServices.GetService<CartService>().GetCart();
+                }
+                @foreach (var item in cart)
+                {
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>@item.ProductName x @item.Quantity</span>
+                        <span>@item.Total.ToString("N0")đ</span>
+                    </div>
+                }
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>Tổng cộng:</strong>
+                    <strong>@cart.Sum(i => i.Total).ToString("N0")đ</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

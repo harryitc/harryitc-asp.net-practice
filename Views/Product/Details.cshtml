@@ -62,9 +62,18 @@
             <p>① @Model.Promotion</p>
         </div>
 
-        <button class="btn btn-lg btn-primary mt-3">
-            <i class="fas fa-cart-plus"></i> MUA NGAY
-        </button>
+        <form asp-controller="Order" asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <div class="form-group mb-3">
+                <label for="quantity" class="form-label">Số lượng:</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" 
+                       value="1" min="1" style="width: 100px" />
+            </div>
+            <button type="submit" class="btn btn-lg btn-primary">
+                <i class="fas fa-cart-plus"></i> MUA NGAY
+            </button>
+        </form>
         <p class="mt-3 fw-bold">Giao hàng miễn phí tại chỗ</p>
         <ul class="list-unstyled mt-2">
             <li><i class="fas fa-check text-success"></i> Bảo hành chính hãng 24 tháng.</li>

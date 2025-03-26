@@ -1,0 +1,58 @@
+@model IEnumerable<Order>
+
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    @foreach (var order in Model)
+    {
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Đơn hàng #@order.Id</span>
+                        <span class="badge bg-@(order.Status == "Pending" ? "warning" : 
+                                             order.Status == "Completed" ? "success" : 
+                                             "danger")">
+                            @order.Status
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p>Tổng tiền: @order.TotalPrice.ToString("N0")đ</p>
+                    
+                    <h6>Chi tiết đơn hàng:</h6>
+                    <ul class="list-unstyled">
+                        @foreach (var detail in order.OrderDetails)
+                        {
+                            <li>
+                                @detail.Product.Name x @detail.Quantity = 
+                                @((detail.Price * detail.Quantity).ToString("N0"))đ
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="mt-3">
+                        <a asp-action="Details" asp-route-id="@order.Id" 
+                           class="btn btn-primary">Chi tiết</a>
+                        @if (order.Status == "Pending")
+                        {
+                            <form asp-action="Cancel" asp-route-id="@order.Id" 
+                                  method="post" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger"
+                                        onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
+                                    Hủy đơn hàng
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

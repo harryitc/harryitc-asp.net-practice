@@ -13,6 +13,8 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -34,10 +36,13 @@ builder.Services.AddRazorPages();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 // Đăng ký Service
 builder.Services.AddHttpClient<IImageService, UnsplashService>();
 builder.Services.AddScoped<ImageUploadService>();
+builder.Services.AddScoped<CartService>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -62,7 +67,6 @@ app.UseRouting();
 
 // Thêm Session vào Middleware
 app.UseSession();
-
 
 app.UseAuthentication();
 app.UseAuthorization();
