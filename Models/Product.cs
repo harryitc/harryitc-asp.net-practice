@@ -9,10 +9,16 @@ public class Product
         [DisplayName("Tên sản phẩm")]
         [Required]
         public string Name { get; set; }
+        
+        public string? Name_khongdau { get; set; }
 
         [DisplayName("Giá tiền")]
         [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
+
+        [DisplayName("Giá tiền gốc")]
+        [Range(0, double.MaxValue)]
+        public decimal OriginialPrice { get; set; }
 
         public int Promotion { get; set; }
         public int Discount { get; set; }

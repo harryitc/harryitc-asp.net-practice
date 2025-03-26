@@ -3,9 +3,10 @@
 public class Category
 {
     public int Id { get; set; }
-    
+
     [DisplayName("Tên danh mục")]
     public string Name { get; set; }
+    public string? Name_khongdau { get; set; }
 
     // Một Category có nhiều Products
     public ICollection<Product>? Products { get; set; }
