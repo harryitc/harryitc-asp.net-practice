@@ -55,7 +55,13 @@ namespace FlowerShop.Repository
 
             if (!string.IsNullOrEmpty(name))
             {
-                query = query.Where(p => p.Name.Contains(name));
+                string name_khong_dau = VietnameseHelper.RemoveDiacritics(name);
+                // Console.WriteLine($"name_khong_dau = {name_khong_dau}");
+                // name_khong_dau = name_khong_dau.ToLower().Trim();
+                // await query.ForEachAsync(item => {
+                //     Console.WriteLine($"item.Name_khongdau = {item.Name_khongdau}");
+                // });
+                query = query.Where(p => p.Name_khongdau.Contains(name_khong_dau));
             }
 
             if (categoryId.HasValue)

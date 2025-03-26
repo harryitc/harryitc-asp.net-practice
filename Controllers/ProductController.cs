@@ -89,6 +89,8 @@ public class ProductController : Controller
                 product.ImageUrl = await _imageUploadService.Save(ImageFile);
             }
 
+            product.Name_khongdau = VietnameseHelper.RemoveDiacritics(product.Name);
+
             await _productRepository.AddAsync(product);
             return RedirectToAction(nameof(Index));
         }

@@ -6,7 +6,7 @@ public static class VietnameseHelper
     {
         if (string.IsNullOrWhiteSpace(text))
             return text;
-
+        
         var normalizedString = text.Normalize(NormalizationForm.FormD);
         var stringBuilder = new StringBuilder();
 
@@ -17,6 +17,6 @@ public static class VietnameseHelper
                 stringBuilder.Append(c);
         }
 
-        return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLower().Trim();
     }
 }
