@@ -70,6 +70,7 @@ namespace FlowerShop.Controllers
 
             if (ModelState.IsValid)
             {
+                category.Name_khongdau = VietnameseHelper.RemoveDiacritics(category.Name);
                 await _categoryRepository.UpdateAsync(category);
                 return RedirectToAction(nameof(Index));
             }
