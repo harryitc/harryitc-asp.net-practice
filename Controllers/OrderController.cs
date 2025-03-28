@@ -21,6 +21,16 @@ namespace FlowerShop.Controllers
             _cartService = cartService;
         }
 
+        // GET: Order/Create
+        public IActionResult Create()
+        {
+            var cart = _cartService.GetCart();
+            if (!cart.Any())
+                return RedirectToAction("Index", "Cart");
+                
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string shippingName, string shippingPhone, string shippingAddress, string note)
@@ -97,5 +107,71 @@ namespace FlowerShop.Controllers
             await _orderRepository.UpdateAsync(order);
             return RedirectToAction(nameof(Index));
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var order = await _orderRepository.GetByIdAsync(id);
+            if (order == null)
+                return NotFound();
+
+            await _orderRepository.DeleteAsync(order.Id);
+            return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var order = await _orderRepository.GetByIdAsync(id);
+            if (order == null)
+                return NotFound();
+
+            return View(order);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, Order order)
+        {
+            if (id != order.Id)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                await _orderRepository.UpdateAsync(order);
+                return RedirectToAction(nameof(Index));
+            }
+            return View(order);
+        }
+
+        // GET: Order/Cancel/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var order = await _orderRepository.GetByIdAsync(id);
+            if (order == null)
+                return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (order.UserId != userId && !User.IsInRole("Admin"))
+                return Forbid();
+
+            // Chỉ cho phép hủy đơn hàng khi đang ở trạng thái Pending
+            if (order.Status != "Pending")
+            {
+                TempData["ErrorMessage"] = "Không thể hủy đơn hàng ở trạng thái này!";
+                return RedirectToAction(nameof(Details), new { id = order.Id });
+            }
+
+            order.Status = "Cancelled";
+            await _orderRepository.UpdateAsync(order);
+
+            TempData["SuccessMessage"] = "Đã hủy đơn hàng thành công!";
+            return RedirectToAction(nameof(Details), new { id = order.Id });
+        }
     }
 }
+
