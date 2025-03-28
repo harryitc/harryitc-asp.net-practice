@@ -1,0 +1,145 @@
+@using FlowerShop.Models
+@model Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.Id;
+}
+
+<div class="container my-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="order-timeline my-4">
+        <div class="progress" style="height: 5px;">
+            @{
+                var progress = Model.Status switch
+                {
+                    "Pending" => 25,
+                    "Processing" => 50,
+                    "Shipping" => 75,
+                    "Completed" => 100,
+                    _ => 0
+                };
+            }
+            <div class="progress-bar bg-success" role="progressbar" 
+                 style="width: @progress%" aria-valuenow="@progress" 
+                 aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+            <div class="timeline-step @(progress >= 25 ? "active" : "")">
+                <i class="fas fa-clipboard-check"></i>
+                <span>Đặt hàng</span>
+            </div>
+            <div class="timeline-step @(progress >= 50 ? "active" : "")">
+                <i class="fas fa-box"></i>
+                <span>Xử lý</span>
+            </div>
+            <div class="timeline-step @(progress >= 75 ? "active" : "")">
+                <i class="fas fa-shipping-fast"></i>
+                <span>Đang giao</span>
+            </div>
+            <div class="timeline-step @(progress >= 100 ? "active" : "")">
+                <i class="fas fa-check-circle"></i>
+                <span>Hoàn thành</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Đơn hàng #@Model.Id</h4>
+            <span class="badge bg-@(Model.Status == "Pending" ? "warning" : 
+                                  Model.Status == "Completed" ? "success" : 
+                                  "danger")">
+                @Model.Status
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Thông tin đơn hàng</h5>
+                    <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("N0")đ</p>
+                    <p><strong>Trạng thái:</strong> @Model.Status</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Thông tin giao hàng</h5>
+                    <p><strong>Người nhận:</strong> @Model.ShippingName</p>
+                    <p><strong>Số điện thoại:</strong> @Model.ShippingPhone</p>
+                    <p><strong>Địa chỉ:</strong> @Model.ShippingAddress</p>
+                    @if (!string.IsNullOrEmpty(Model.Note))
+                    {
+                        <p><strong>Ghi chú:</strong> @Model.Note</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Chi tiết đơn hàng</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Đơn giá</th>
+                            <th>Số lượng</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderDetails)
+                        {
+                            <tr>
+                                <td>@item.Product.Name</td>
+                                <td>@item.Price.ToString("N0")đ</td>
+                                <td>@item.Quantity</td>
+                                <td class="text-end">@((item.Price * item.Quantity).ToString("N0"))đ</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
+                            <td class="text-end"><strong>@Model.TotalPrice.ToString("N0")đ</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="@Url.Action("MyOrders")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+        
+        @if (Model.Status == "Pending")
+        {
+            <form asp-action="Cancel" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger" 
+                        onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
+                    <i class="fas fa-times"></i> Hủy đơn hàng
+                </button>
+            </form>
+        }
+    </div>
+</div>
