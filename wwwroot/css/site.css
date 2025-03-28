@@ -29,3 +29,62 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+.dropdown-menu {
+    box-shadow: 0 2px 10px rgba(0,0,0,.1);
+}
+
+/* Ensure dropdown shows on hover */
+.nav-item.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+/* Style for cart items */
+#cartItems .dropdown-item {
+    white-space: normal;
+    padding: .5rem;
+}
+
+#cartItems .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Make dropdown items not too wide */
+.dropdown-menu {
+    max-width: 400px;
+}
+
+/* Style for empty cart message */
+.empty-cart {
+    padding: 1rem;
+    text-align: center;
+    color: #6c757d;
+}
+
+/* Prevent dropdown from closing when clicking inside */
+.dropdown-menu.show {
+    display: block;
+}
+
+.cart-count {
+    font-size: 0.7rem;
+    transform: translate(-50%, -50%);
+}
+
+#cartItems {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#cartItems .dropdown-item {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+#cartItems .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+#cartItems .dropdown-item:hover {
+    background-color: #f8f9fa;
+}

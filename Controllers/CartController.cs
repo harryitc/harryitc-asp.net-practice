@@ -22,14 +22,28 @@ public class CartController : Controller
         return View(cart);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> AddToCart(int productId, int quantity)
+    [HttpGet]
+    public IActionResult GetCart()
     {
-        var product = await _productRepository.GetByIdAsync(productId);
+        var cart = _cartService.GetCart();
+        return Json(cart);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddToCart([FromBody] AddToCartModel model)
+    {
+        var product = await _productRepository.GetByIdAsync(model.ProductId);
         if (product == null) return NotFound();
 
-        _cartService.AddToCart(product, quantity);
-        return RedirectToAction(nameof(Index));
+        _cartService.AddToCart(product, model.Quantity);
+        return Ok();
+    }
+
+    public class AddToCartModel
+    {
+        public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 
     [HttpPost]
