@@ -86,25 +86,29 @@ async function getCart() {
     return await response.json();
 }
 
-async function updateQuantity(productId, quantity) {
-    if (quantity < 1) return;
+async function updateQuantity(productId, newQuantity) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
     
     try {
-        const response = await fetch('/Cart/UpdateQuantity', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-            },
-            body: JSON.stringify({ productId, quantity })
-        });
-
-        if (!response.ok) throw new Error('Network response was not ok');
-        
+        await updateCartItem(productId, newQuantity);
         const cart = await getCart();
         updateCartUI(cart);
     } catch (error) {
-        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: 'Không thể cập nhật số lượng',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalText;
     }
 }
 
@@ -126,6 +130,23 @@ async function removeFromCart(productId) {
     } catch (error) {
         console.error('Error:', error);
     }
+}
+
+async function updateCartItem(productId, newQuantity) {
+    const response = await fetch('/Cart/UpdateQuantity', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+        },
+        body: JSON.stringify({ productId, quantity: newQuantity })
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update cart item');
+    }
+
+    return response;
 }
 
 // Load cart when page loads

@@ -52,8 +52,11 @@
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <div class="nav-item dropdown">
-                                <a class="nav-link position-relative" href="#" id="cartDropdown" role="button" 
-                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="nav-link position-relative" 
+                                   data-bs-toggle="dropdown" 
+                                   data-bs-tooltip="tooltip" 
+                                   data-bs-placement="bottom" 
+                                   title="Tổng: <span id='cartTotalTooltip'>0đ</span>">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
                                         0

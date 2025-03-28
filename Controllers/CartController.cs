@@ -47,10 +47,17 @@ public class CartController : Controller
     }
 
     [HttpPost]
-    public IActionResult UpdateQuantity(int productId, int quantity)
+    [ValidateAntiForgeryToken]
+    public IActionResult UpdateQuantity([FromBody] UpdateQuantityModel model)
     {
-        _cartService.UpdateQuantity(productId, quantity);
-        return RedirectToAction(nameof(Index));
+        _cartService.UpdateQuantity(model.ProductId, model.Quantity);
+        return Ok();
+    }
+
+    public class UpdateQuantityModel
+    {
+        public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 
     [HttpPost]
