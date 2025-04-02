@@ -4,7 +4,14 @@ function updateCartUI(cart) {
     const cartTotal = document.getElementById('cartTotal');
     
     // Update count
-    cartCount.textContent = cart.length;
+    if(cart.length == 0) {
+        cartCount.classList.remove('d-inline-block');
+        cartCount.classList.add('d-none');
+    }else {
+        cartCount.classList.remove('d-none');
+        cartCount.classList.add('d-inline-block');
+        cartCount.textContent = cart.length;
+    }
     
     // Check if cart is empty
     if (cart.length === 0) {
@@ -74,7 +81,7 @@ async function addToCart(productId, quantity = 1) {
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
-            timer: 3000
+            timer: 1500
         });
     } catch (error) {
         console.error('Error:', error);
