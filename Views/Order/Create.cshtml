@@ -2,16 +2,48 @@
     ViewData["Title"] = "Đặt hàng";
 }
 
-<h1>@ViewData["Title"]</h1>
+<style>
+    .payment-method-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid #e9ecef;
+    }
+
+    .payment-method-card:hover {
+        border-color: #adb5bd;
+    }
+
+    .payment-method-card.selected {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+
+    .payment-method-card .payment-logo {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+    }
+
+    .payment-method-card .form-check-input {
+        margin-top: 0;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Quay lại giỏ hàng
+    </a>
+</div>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Thông tin giao hàng</h5>
+    <div class="col-md-7">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-shipping-fast me-2"></i>Thông tin giao hàng</h5>
             </div>
             <div class="card-body">
-                <form asp-action="Create" method="post">
+                <form asp-action="Create" method="post" id="orderForm">
                     <div class="mb-3">
                         <label for="shippingName" class="form-label">Tên người nhận</label>
                         <input type="text" class="form-control" id="shippingName" name="shippingName" required>
@@ -28,40 +60,109 @@
                         <label for="note" class="form-label">Ghi chú (tùy chọn)</label>
                         <textarea class="form-control" id="note" name="note" rows="2"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Đặt hàng</button>
-                    <a asp-controller="Cart" asp-action="Index" class="btn btn-secondary">Quay lại giỏ hàng</a>
+
+                    <div class="mb-4">
+                        <label class="form-label">Phương thức thanh toán</label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card payment-method-card selected h-100" data-payment-method="1">
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="paymentMethod" id="paymentCOD" value="1" checked>
+                                        </div>
+                                        <div class="ms-3 text-center flex-grow-1">
+                                            <img src="/images/cod.svg" alt="COD" class="payment-logo mb-2">
+                                            <h6 class="mb-0">Thanh toán khi nhận hàng</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card payment-method-card h-100" data-payment-method="2">
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="paymentMethod" id="paymentMomo" value="2">
+                                        </div>
+                                        <div class="ms-3 text-center flex-grow-1">
+                                            <img src="/images/momo.svg" alt="MoMo" class="payment-logo mb-2">
+                                            <h6 class="mb-0">Ví điện tử MoMo</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card payment-method-card h-100" data-payment-method="3">
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="paymentMethod" id="paymentBank" value="3">
+                                        </div>
+                                        <div class="ms-3 text-center flex-grow-1">
+                                            <img src="/images/bank.svg" alt="Bank Transfer" class="payment-logo mb-2">
+                                            <h6 class="mb-0">Chuyển khoản ngân hàng</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-check-circle me-2"></i> Hoàn tất đặt hàng
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Đơn hàng của bạn</h5>
+
+    <div class="col-md-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Đơn hàng của bạn</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table">
-                        <thead>
+                    <table class="table mb-0">
+                        <thead class="table-light">
                             <tr>
                                 <th>Sản phẩm</th>
-                                <th>Số lượng</th>
-                                <th>Đơn giá</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Đơn giá</th>
                                 <th class="text-end">Thành tiền</th>
                             </tr>
                         </thead>
                         <tbody id="cart-items">
                             <!-- Dữ liệu giỏ hàng sẽ được hiển thị ở đây -->
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
-                                <td class="text-end"><strong id="cart-total">0đ</strong></td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
+            </div>
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Tạm tính:</span>
+                    <span id="cart-subtotal">0đ</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Phí vận chuyển:</span>
+                    <span>Miễn phí</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Tổng thanh toán:</span>
+                    <span class="text-primary" id="cart-total">0đ</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Thông tin bảo mật</h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-0">
+                    <i class="fas fa-lock me-1"></i> Thông tin thanh toán của bạn được bảo mật an toàn với chuẩn mã hóa SSL.
+                </p>
             </div>
         </div>
     </div>
@@ -70,6 +171,16 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Xử lý chọn phương thức thanh toán
+            $('.payment-method-card').click(function() {
+                // Bỏ chọn tất cả các card
+                $('.payment-method-card').removeClass('selected');
+                // Chọn card hiện tại
+                $(this).addClass('selected');
+                // Chọn radio button bên trong
+                $(this).find('input[type="radio"]').prop('checked', true);
+            });
+
             // Lấy dữ liệu giỏ hàng từ API
             $.ajax({
                 url: '@Url.Action("GetCart", "Cart")',
@@ -78,30 +189,34 @@
                     if (cart && cart.length > 0) {
                         let cartHtml = '';
                         let total = 0;
-                        
+
                         // Hiển thị từng sản phẩm trong giỏ hàng
                         cart.forEach(function(item) {
                             const itemTotal = item.price * item.quantity;
                             total += itemTotal;
-                            
+
                             cartHtml += `
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="${item.imageUrl}" alt="${item.productName}" 
-                                                 style="width: 40px; height: 40px; object-fit: cover;" class="me-2">
-                                            <span>${item.productName}</span>
+                                            <img src="${item.imageUrl}" alt="${item.productName}"
+                                                 style="width: 40px; height: 40px; object-fit: cover;" class="me-2 rounded">
+                                            <div>
+                                                <div class="fw-medium">${item.productName}</div>
+                                                <small class="text-muted">Mã SP: ${item.productId}</small>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td>${item.quantity}</td>
-                                    <td>${item.price.toLocaleString('vi-VN')}đ</td>
-                                    <td class="text-end">${itemTotal.toLocaleString('vi-VN')}đ</td>
+                                    <td class="text-center">${item.quantity}</td>
+                                    <td class="text-end">${item.price.toLocaleString('vi-VN')}đ</td>
+                                    <td class="text-end fw-medium">${itemTotal.toLocaleString('vi-VN')}đ</td>
                                 </tr>
                             `;
                         });
-                        
+
                         // Cập nhật HTML
                         $('#cart-items').html(cartHtml);
+                        $('#cart-subtotal').text(total.toLocaleString('vi-VN') + 'đ');
                         $('#cart-total').text(total.toLocaleString('vi-VN') + 'đ');
                     } else {
                         // Giỏ hàng trống, chuyển hướng về trang giỏ hàng
@@ -109,8 +224,30 @@
                     }
                 },
                 error: function() {
-                    alert('Có lỗi xảy ra khi tải giỏ hàng. Vui lòng thử lại sau.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Có lỗi xảy ra khi tải giỏ hàng. Vui lòng thử lại sau.'
+                    });
                     window.location.href = '@Url.Action("Index", "Cart")';
+                }
+            });
+
+            // Xử lý submit form
+            $('#orderForm').submit(function() {
+                // Hiển thị thông báo đang xử lý
+                const paymentMethod = $('input[name="paymentMethod"]:checked').val();
+                if (paymentMethod == 2) { // MoMo
+                    Swal.fire({
+                        title: 'Đang chuyển hướng...',
+                        text: 'Bạn sẽ được chuyển đến cổng thanh toán MoMo',
+                        icon: 'info',
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
                 }
             });
         });

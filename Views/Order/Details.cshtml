@@ -1,4 +1,5 @@
 @using FlowerShop.Models
+@using FlowerShop.Models.Payment
 @model Order
 @{
     ViewData["Title"] = "Chi tiết đơn hàng #" + Model.Id;
@@ -79,12 +80,49 @@
                     <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
                     <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("N0")đ</p>
                     <p><strong>Trạng thái:</strong>
-                        @(Model.Status == "Pending" ? "Đang chờ" :
-                          Model.Status == "Processing" ? "Đang xử lý" :
-                          Model.Status == "Shipping" ? "Đang giao" :
-                          Model.Status == "Completed" ? "Hoàn thành" :
-                          "Đã hủy")
+                        <span class="badge bg-@(Model.Status == "Pending" ? "warning" :
+                                          Model.Status == "Processing" ? "info" :
+                                          Model.Status == "Shipping" ? "primary" :
+                                          Model.Status == "Completed" ? "success" :
+                                          "danger")">
+                            @(Model.Status == "Pending" ? "Đang chờ" :
+                              Model.Status == "Processing" ? "Đang xử lý" :
+                              Model.Status == "Shipping" ? "Đang giao" :
+                              Model.Status == "Completed" ? "Hoàn thành" :
+                              "Đã hủy")
+                        </span>
                     </p>
+                    <p>
+                        <strong>Phương thức thanh toán:</strong>
+                        @switch (Model.PaymentMethod)
+                        {
+                            case PaymentMethod.COD:
+                                <span>Thanh toán khi nhận hàng (COD)</span>
+                                break;
+                            case PaymentMethod.MoMo:
+                                <span class="text-danger">Ví điện tử MoMo</span>
+                                break;
+                            case PaymentMethod.BankTransfer:
+                                <span class="text-primary">Chuyển khoản ngân hàng</span>
+                                break;
+                        }
+                    </p>
+                    <p>
+                        <strong>Trạng thái thanh toán:</strong>
+                        @if (Model.IsPaid)
+                        {
+                            <span class="badge bg-success">Đã thanh toán</span>
+                            <span class="ms-2">(@Model.PaymentDate?.ToString("dd/MM/yyyy HH:mm"))</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">Chưa thanh toán</span>
+                        }
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.TransactionId))
+                    {
+                        <p><strong>Mã giao dịch:</strong> @Model.TransactionId</p>
+                    }
                 </div>
                 <div class="col-md-6">
                     <h5>Thông tin giao hàng</h5>

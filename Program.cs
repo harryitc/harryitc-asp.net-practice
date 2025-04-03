@@ -1,8 +1,10 @@
 using FlowerShop.Models;
+using FlowerShop.Models.Payment;
 using FlowerShop.Repository;
 using FlowerShop.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +45,11 @@ builder.Services.AddHttpClient<IImageService, UnsplashService>();
 builder.Services.AddScoped<ImageUploadService>();
 builder.Services.AddScoped<CartService>();
 builder.Services.AddHttpContextAccessor();
+
+// Đăng ký MoMo Payment Service
+builder.Services.Configure<MoMoConfig>(builder.Configuration.GetSection("MoMo"));
+builder.Services.AddHttpClient<MoMoPaymentService>();
+builder.Services.AddScoped<MoMoPaymentService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
