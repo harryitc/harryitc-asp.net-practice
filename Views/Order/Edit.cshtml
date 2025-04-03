@@ -1,4 +1,5 @@
 @model Order
+@using FlowerShop.Models.Payment
 
 @{
     ViewData["Title"] = "Chỉnh sửa đơn hàng";
@@ -48,6 +49,31 @@
                     <option value="Cancelled">Đã hủy</option>
                 </select>
                 <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PaymentMethod" class="form-label">Phương thức thanh toán</label>
+                <select asp-for="PaymentMethod" class="form-select">
+                    <option value="@PaymentMethod.COD">Thanh toán khi nhận hàng (COD)</option>
+                    <option value="@PaymentMethod.MoMo">Ví điện tử MoMo</option>
+                    <option value="@PaymentMethod.BankTransfer">Chuyển khoản ngân hàng</option>
+                </select>
+                <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="IsPaid" class="form-label">Trạng thái thanh toán</label>
+                <div class="form-check form-switch">
+                    <input asp-for="IsPaid" class="form-check-input" type="checkbox" role="switch">
+                    <label class="form-check-label" for="IsPaid">Đã thanh toán</label>
+                </div>
+                <span asp-validation-for="IsPaid" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="TransactionId" class="form-label">Mã giao dịch</label>
+                <input asp-for="TransactionId" class="form-control" />
+                <span asp-validation-for="TransactionId" class="text-danger"></span>
             </div>
 
             <div class="form-group">

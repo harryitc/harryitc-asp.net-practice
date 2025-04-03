@@ -177,6 +177,8 @@ namespace FlowerShop.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
+
         // Xử lý callback từ MoMo
         [AllowAnonymous]
         public async Task<IActionResult> MoMoPaymentCallback(string partnerCode, string orderId, string requestId,
@@ -296,14 +298,25 @@ namespace FlowerShop.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var order = await _orderRepository.GetByIdAsync(id);
-            if (order == null)
-                return NotFound();
+            try
+            {
+                var order = await _orderRepository.GetByIdAsync(id);
+                if (order == null)
+                    return NotFound();
 
-            await _orderRepository.DeleteAsync(order.Id);
-            return RedirectToAction(nameof(Index));
+                await _orderRepository.DeleteAsync(order.Id);
+                TempData["SuccessMessage"] = "Đã xóa đơn hàng thành công!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error deleting order: {Message}", ex.Message);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi xóa đơn hàng!";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [Authorize(Roles = "Admin")]
@@ -335,6 +348,19 @@ namespace FlowerShop.Controllers
             existingOrder.ShippingAddress = updatedOrder.ShippingAddress;
             existingOrder.Note = updatedOrder.Note;
             existingOrder.Status = updatedOrder.Status;
+            existingOrder.PaymentMethod = updatedOrder.PaymentMethod;
+            existingOrder.IsPaid = updatedOrder.IsPaid;
+            existingOrder.TransactionId = updatedOrder.TransactionId;
+
+            // Cập nhật ngày thanh toán nếu trạng thái thanh toán thay đổi
+            if (existingOrder.IsPaid && !existingOrder.PaymentDate.HasValue)
+            {
+                existingOrder.PaymentDate = DateTime.Now;
+            }
+            else if (!existingOrder.IsPaid)
+            {
+                existingOrder.PaymentDate = null;
+            }
 
             if (ModelState.IsValid)
             {

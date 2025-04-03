@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using FlowerShop.Models;
+using System.Collections.Generic;
 
 namespace FlowerShop.Repository
 {
@@ -54,9 +55,19 @@ namespace FlowerShop.Repository
 
         public async Task DeleteAsync(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
             if (order != null)
             {
+                // Xóa các chi tiết đơn hàng trước
+                if (order.OrderDetails != null)
+                {
+                    _context.OrderDetails.RemoveRange(order.OrderDetails);
+                }
+
+                // Xóa đơn hàng
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
             }

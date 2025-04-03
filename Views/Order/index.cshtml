@@ -25,6 +25,22 @@
     </div>
 </div>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="row mb-4">
     <div class="col-md-2">
         <div class="card bg-light h-100">
@@ -185,8 +201,7 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@order.Id" />
                                                     <input type="hidden" name="status" value="Processing" />
-                                                    <button type="submit" class="dropdown-item" 
-                                                            onclick="return confirm('Chuyển đơn hàng sang trạng thái Đang xử lý?')">
+                                                    <button type="submit" class="dropdown-item">
                                                         <i class="fas fa-cog text-info me-2"></i> Chuyển sang xử lý
                                                     </button>
                                                 </form>
@@ -199,8 +214,7 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@order.Id" />
                                                     <input type="hidden" name="status" value="Shipping" />
-                                                    <button type="submit" class="dropdown-item" 
-                                                            onclick="return confirm('Chuyển đơn hàng sang trạng thái Đang giao?')">
+                                                    <button type="submit" class="dropdown-item">
                                                         <i class="fas fa-shipping-fast text-primary me-2"></i> Chuyển sang giao hàng
                                                     </button>
                                                 </form>
@@ -213,8 +227,7 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@order.Id" />
                                                     <input type="hidden" name="status" value="Completed" />
-                                                    <button type="submit" class="dropdown-item" 
-                                                            onclick="return confirm('Xác nhận hoàn thành đơn hàng này?')">
+                                                    <button type="submit" class="dropdown-item">
                                                         <i class="fas fa-check text-success me-2"></i> Hoàn thành đơn hàng
                                                     </button>
                                                 </form>
@@ -225,8 +238,7 @@
                                             <form asp-controller="Order" asp-action="Delete" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@order.Id" />
-                                                <button type="submit" class="dropdown-item text-danger" 
-                                                        onclick="return confirm('Bạn có chắc muốn xóa đơn hàng này?')">
+                                                <button type="submit" class="dropdown-item text-danger">
                                                     <i class="fas fa-trash me-2"></i> Xóa đơn hàng
                                                 </button>
                                             </form>
@@ -315,6 +327,90 @@
             // Export button
             $('#exportBtn').click(function() {
                 table.button('.buttons-excel').trigger();
+            });
+            
+            // Xử lý các form cập nhật trạng thái
+            $('form[action="/Order/UpdateStatus"]').submit(function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                var data = form.serialize();
+                
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: data,
+                    success: function(response) {
+                        // Hiển thị thông báo thành công
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công!',
+                            text: 'Đã cập nhật trạng thái đơn hàng',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(function() {
+                            // Tải lại trang
+                            location.reload();
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        // Hiển thị thông báo lỗi
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi!',
+                            text: 'Có lỗi xảy ra khi cập nhật trạng thái đơn hàng',
+                        });
+                    }
+                });
+            });
+            
+            // Xử lý form xóa đơn hàng
+            $('form[action="/Order/Delete"]').submit(function(e) {
+                e.preventDefault();
+                var form = $(this);
+                
+                Swal.fire({
+                    title: 'Xóa đơn hàng?',
+                    text: 'Bạn có chắc muốn xóa đơn hàng này?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Xóa',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var url = form.attr('action');
+                        var data = form.serialize();
+                        
+                        $.ajax({
+                            url: url,
+                            type: 'POST',
+                            data: data,
+                            success: function(response) {
+                                // Hiển thị thông báo thành công
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Đã xóa!',
+                                    text: 'Đơn hàng đã được xóa thành công',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(function() {
+                                    // Tải lại trang
+                                    location.reload();
+                                });
+                            },
+                            error: function(xhr, status, error) {
+                                // Hiển thị thông báo lỗi
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Lỗi!',
+                                    text: 'Có lỗi xảy ra khi xóa đơn hàng',
+                                });
+                            }
+                        });
+                    }
+                });
             });
         });
     </script>
