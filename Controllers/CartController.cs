@@ -77,8 +77,22 @@ public class CartController : Controller
     public IActionResult RemoveFromCart(int productId)
     {
         _cartService.RemoveFromCart(productId);
+
+        // Nếu là AJAX request, trả về Ok
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            return Ok();
+
+        // Nếu không, chuyển hướng về trang giỏ hàng
         return RedirectToAction(nameof(Index));
     }
+
+    // // GET: Cart/GetCart
+    // [HttpGet]
+    // public IActionResult GetCart()
+    // {
+    //     var cart = _cartService.GetCart();
+    //     return Json(cart);
+    // }
 
     public IActionResult Checkout()
     {
