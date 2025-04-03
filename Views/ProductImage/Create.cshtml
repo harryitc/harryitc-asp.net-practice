@@ -3,16 +3,33 @@
 @{
     ViewData["Title"] = "Thêm hình ảnh sản phẩm";
     var unsplashImages = ViewData["ImageList"] as List<string>;
+    var selectedProduct = ViewData["SelectedProduct"] as Product;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>@ViewData["Title"]</h1>
-    <a asp-action="Index" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
-    </a>
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        @if (selectedProduct != null)
+        {
+            <p class="text-muted">Thêm hình ảnh cho sản phẩm: <strong>@selectedProduct.Name</strong></p>
+        }
+    </div>
+    <div>
+        @if (selectedProduct != null)
+        {
+            <a asp-action="Index" asp-route-productId="@selectedProduct.Id" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+        }
+        else
+        {
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+        }
+    </div>
 </div>
 
-<hr />
 <div class="row">
     <div class="col-md-8">
         <div class="card">
@@ -30,6 +47,12 @@
                                 <select asp-for="ProductId" class="form-select" asp-items="ViewBag.ProductId"></select>
                                 <label asp-for="ProductId">Sản phẩm</label>
                                 <span asp-validation-for="ProductId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-4">
+                                <input class="form-check-input" type="checkbox" id="IsMainImage" name="IsMainImage" value="true">
+                                <label class="form-check-label" for="IsMainImage">Sử dụng làm hình ảnh chính</label>
                             </div>
                         </div>
                     </div>

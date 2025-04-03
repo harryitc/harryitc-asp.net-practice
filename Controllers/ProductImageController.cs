@@ -32,10 +32,37 @@ namespace FlowerShop.Controllers
         }
 
         // GET: ProductImage
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? productId)
         {
-            var images = await _productImageRepository.GetAllAsync();
-            return View(images);
+            ViewBag.Products = await _productRepository.GetAllAsync();
+
+            if (productId.HasValue)
+            {
+                var product = await _productRepository.GetByIdAsync(productId.Value);
+                if (product == null)
+                    return NotFound();
+
+                ViewBag.SelectedProduct = product;
+                var productImages = await _productImageRepository.GetByProductIdAsync(productId.Value);
+                return View(productImages);
+            }
+            else
+            {
+                // Nhóm hình ảnh theo sản phẩm
+                var allImages = await _productImageRepository.GetAllAsync();
+                var groupedImages = allImages
+                    .GroupBy(img => img.ProductId)
+                    .Select(group => new ProductImagesGroup
+                    {
+                        ProductId = group.Key,
+                        Product = group.First().Product,
+                        Images = group.ToList(),
+                        Count = group.Count()
+                    })
+                    .ToList();
+
+                return View("IndexGrouped", groupedImages);
+            }
         }
 
         // GET: ProductImage/Details/5
@@ -52,39 +79,81 @@ namespace FlowerShop.Controllers
         }
 
         // GET: ProductImage/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int? productId)
         {
             var products = await _productRepository.GetAllAsync();
-            ViewData["ProductId"] = new SelectList(products, "Id", "Name");
+            ViewData["ProductId"] = new SelectList(products, "Id", "Name", productId);
 
-            var images = await _imageService.GetUnsplashImagesAsync("flowers", 5);
+            if (productId.HasValue)
+            {
+                var product = await _productRepository.GetByIdAsync(productId.Value);
+                if (product != null)
+                {
+                    ViewData["SelectedProduct"] = product;
+                }
+            }
+
+            var images = await _imageService.GetUnsplashImagesAsync("flowers", 12);
             ViewData["ImageList"] = images;
 
-            return View();
+            return View(new ProductImage { ProductId = productId ?? 0 });
         }
 
         // POST: ProductImage/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ImageUrl,ProductId")] ProductImage productImage,
+        public async Task<IActionResult> Create([Bind("Id,ImageUrl,ProductId,IsMainImage")] ProductImage productImage,
         IFormFile? ImageFile
         )
         {
             if (ModelState.IsValid)
             {
-
                 // Nếu người dùng chọn upload file
                 if (ImageFile != null)
                 {
                     productImage.ImageUrl = await _imageUploadService.Save(ImageFile);
                 }
 
+                // Nếu đặt làm hình ảnh chính, hủy các hình ảnh chính khác của sản phẩm này
+                if (productImage.IsMainImage)
+                {
+                    var productImages = await _productImageRepository.GetByProductIdAsync(productImage.ProductId);
+                    foreach (var img in productImages)
+                    {
+                        if (img.IsMainImage)
+                        {
+                            img.IsMainImage = false;
+                            await _productImageRepository.UpdateAsync(img);
+                        }
+                    }
+                }
+
                 await _productImageRepository.AddAsync(productImage);
+
+                // Chuyển hướng về trang chi tiết sản phẩm nếu có productId
+                if (productImage.ProductId > 0)
+                {
+                    return RedirectToAction(nameof(Index), new { productId = productImage.ProductId });
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 
             var products = await _productRepository.GetAllAsync();
             ViewData["ProductId"] = new SelectList(products, "Id", "Name", productImage.ProductId);
+
+            if (productImage.ProductId > 0)
+            {
+                var product = await _productRepository.GetByIdAsync(productImage.ProductId);
+                if (product != null)
+                {
+                    ViewData["SelectedProduct"] = product;
+                }
+            }
+
+            var images = await _imageService.GetUnsplashImagesAsync("flowers", 12);
+            ViewData["ImageList"] = images;
+
             return View(productImage);
         }
 
@@ -159,6 +228,43 @@ namespace FlowerShop.Controllers
         {
             await _productImageRepository.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: ProductImage/SetMainImage
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetMainImage(int id, bool isMain)
+        {
+            try
+            {
+                var image = await _productImageRepository.GetByIdAsync(id);
+                if (image == null)
+                    return NotFound();
+
+                // Nếu đặt làm hình ảnh chính, hủy các hình ảnh chính khác của sản phẩm này
+                if (isMain)
+                {
+                    var productImages = await _productImageRepository.GetByProductIdAsync(image.ProductId);
+                    foreach (var img in productImages)
+                    {
+                        if (img.Id != id && img.IsMainImage)
+                        {
+                            img.IsMainImage = false;
+                            await _productImageRepository.UpdateAsync(img);
+                        }
+                    }
+                }
+
+                // Cập nhật trạng thái hình ảnh hiện tại
+                image.IsMainImage = isMain;
+                await _productImageRepository.UpdateAsync(image);
+
+                return Json(new { success = true });
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
         }
     }
 }

@@ -1,13 +1,19 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
-public class Category
+namespace FlowerShop.Models
 {
-    public int Id { get; set; }
+    public class Category
+    {
+        public int Id { get; set; }
 
-    [DisplayName("Tên danh mục")]
-    public string Name { get; set; }
-    public string? Name_khongdau { get; set; }
+        [Required(ErrorMessage = "Vui lòng nhập tên danh mục")]
+        [DisplayName("Tên danh mục")]
+        public string Name { get; set; } = string.Empty;
 
-    // Một Category có nhiều Products
-    public ICollection<Product>? Products { get; set; }
+        public string? Name_khongdau { get; set; }
+
+        // Một Category có nhiều Products
+        public ICollection<Product>? Products { get; set; }
+    }
 }

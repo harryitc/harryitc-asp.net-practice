@@ -8,6 +8,7 @@ using FlowerShop.Controllers;
 using FlowerShop.Repository;
 using FlowerShop.Services;
 using Microsoft.AspNetCore.Authorization;
+using FlowerShop.Models;
 
 public class ProductController : Controller
 {
@@ -78,8 +79,8 @@ public class ProductController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles="Admin")]
-    public async Task<IActionResult> Create([Bind("Id,Name,Price,ImageUrl,Description,CategoryId")] Product product,
-        IFormFile? ImageFile)
+    public async Task<IActionResult> Create([Bind("Id,Name,Price,OriginialPrice,Discount,Promotion,ImageUrl,Description,CategoryId")] Product product,
+        IFormFile? ImageFile, List<IFormFile>? AdditionalImages)
     {
         if (ModelState.IsValid)
         {
@@ -91,7 +92,28 @@ public class ProductController : Controller
 
             product.Name_khongdau = VietnameseHelper.RemoveDiacritics(product.Name);
 
+            // Lưu sản phẩm trước để có Id
             await _productRepository.AddAsync(product);
+
+            // Xử lý các hình ảnh bổ sung
+            if (AdditionalImages != null && AdditionalImages.Count > 0)
+            {
+                foreach (var image in AdditionalImages)
+                {
+                    if (image != null && image.Length > 0)
+                    {
+                        var imageUrl = await _imageUploadService.Save(image);
+                        var productImage = new ProductImage
+                        {
+                            ProductId = product.Id,
+                            ImageUrl = imageUrl
+                        };
+
+                        await _productRepository.AddProductImageAsync(productImage);
+                    }
+                }
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -149,29 +171,77 @@ public class ProductController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles="Admin")]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,ImageUrl,Description,CategoryId")] Product product,
-        IFormFile? ImageFile
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,OriginialPrice,Discount,Promotion,ImageUrl,Description,CategoryId")] Product product,
+        IFormFile? ImageFile, List<IFormFile>? AdditionalImages, bool? DeleteExistingImages
         )
     {
         if (id != product.Id) return NotFound();
 
         if (ModelState.IsValid)
         {
+            // Lấy sản phẩm hiện tại để giữ lại các thông tin không được cập nhật
+            var existingProduct = await _productRepository.GetByIdAsync(id);
+            if (existingProduct == null) return NotFound();
+
+            // Cập nhật các trường
+            existingProduct.Name = product.Name;
+            existingProduct.Price = product.Price;
+            existingProduct.OriginialPrice = product.OriginialPrice;
+            existingProduct.Discount = product.Discount;
+            existingProduct.Promotion = product.Promotion;
+            existingProduct.Description = product.Description;
+            existingProduct.CategoryId = product.CategoryId;
+            existingProduct.Name_khongdau = VietnameseHelper.RemoveDiacritics(product.Name);
+
             // Nếu người dùng chọn upload file
             if (ImageFile != null)
             {
-                product.ImageUrl = await _imageUploadService.Save(ImageFile);
+                existingProduct.ImageUrl = await _imageUploadService.Save(ImageFile);
             }
+            else
+            {
+                // Giữ lại URL hình ảnh cũ nếu không có hình mới
+                existingProduct.ImageUrl = product.ImageUrl;
+            }
+
             try
             {
-                await _productRepository.UpdateAsync(product);
+                // Xóa tất cả hình ảnh hiện tại nếu được yêu cầu
+                if (DeleteExistingImages == true)
+                {
+                    await _productRepository.DeleteAllProductImagesAsync(id);
+                }
+
+                // Xử lý các hình ảnh bổ sung
+                if (AdditionalImages != null && AdditionalImages.Count > 0)
+                {
+                    foreach (var image in AdditionalImages)
+                    {
+                        if (image != null && image.Length > 0)
+                        {
+                            var imageUrl = await _imageUploadService.Save(image);
+                            var productImage = new ProductImage
+                            {
+                                ProductId = id,
+                                ImageUrl = imageUrl
+                            };
+
+                            await _productRepository.AddProductImageAsync(productImage);
+                        }
+                    }
+                }
+
+                // Cập nhật sản phẩm
+                await _productRepository.UpdateAsync(existingProduct);
+
+                TempData["SuccessMessage"] = "Cập nhật sản phẩm thành công!";
+                return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!await ProductExists(product.Id)) return NotFound();
                 else throw;
             }
-            return RedirectToAction(nameof(Index));
         }
 
         var categories = await _categoryRepository.GetAllAsync();

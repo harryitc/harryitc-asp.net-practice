@@ -81,7 +81,7 @@
 
                     <div class="card mb-3">
                         <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="fas fa-image me-2"></i>Hình ảnh sản phẩm</h5>
+                            <h5 class="mb-0"><i class="fas fa-image me-2"></i>Hình ảnh chính</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
@@ -107,7 +107,7 @@
                             <div class="mb-3" id="urlInput">
                                 <div class="form-floating">
                                     <input type="text" name="__imageUrl" id="__imageUrl" class="form-control" placeholder="Nhập URL hình ảnh" value="@Model.ImageUrl">
-                                    <label for="__imageUrl">URL hình ảnh</label>
+                                    <label for="__imageUrl">URL hình ảnh chính</label>
                                 </div>
                             </div>
 
@@ -131,6 +131,65 @@
                                         }
                                     }
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-images me-2"></i>Hình ảnh bổ sung</h5>
+                            <div>
+                                <div class="form-check form-switch d-inline-block me-2">
+                                    <input class="form-check-input" type="checkbox" id="DeleteExistingImages" name="DeleteExistingImages" value="true">
+                                    <label class="form-check-label" for="DeleteExistingImages">Xóa hình ảnh cũ</label>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-primary" id="addMoreImagesBtn">
+                                    <i class="fas fa-plus me-1"></i> Thêm hình ảnh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.ProductImages != null && Model.ProductImages.Any())
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label">Hình ảnh hiện tại:</label>
+                                    <div class="row g-2">
+                                        @foreach (var image in Model.ProductImages)
+                                        {
+                                            <div class="col-6 col-md-4 col-lg-3">
+                                                <div class="card h-100">
+                                                    <img src="@image.ImageUrl" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                                    <div class="card-body p-2 text-center">
+                                                        <a href="@Url.Action("Delete", "ProductImage", new { id = image.Id })"
+                                                           class="btn btn-sm btn-outline-danger"
+                                                           onclick="return confirm('Bạn có chắc muốn xóa hình ảnh này?')">
+                                                            <i class="fas fa-trash me-1"></i> Xóa
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> Bạn có thể tải lên nhiều hình ảnh bổ sung cho sản phẩm này.
+                            </div>
+
+                            <div id="additionalImagesContainer">
+                                <div class="mb-3">
+                                    <div class="input-group">
+                                        <input type="file" name="AdditionalImages" class="form-control" accept="image/*">
+                                        <button type="button" class="btn btn-outline-danger remove-image" style="display: none;">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="additionalImagesPreview" class="row g-2 mt-2">
+                                <!-- Hình ảnh preview sẽ được thêm vào đây -->
                             </div>
                         </div>
                     </div>
@@ -201,4 +260,64 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
         await Html.RenderPartialAsync("_HandleImageScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function() {
+            // Xử lý thêm nhiều hình ảnh
+            $('#addMoreImagesBtn').click(function() {
+                var newImageInput = `
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="file" name="AdditionalImages" class="form-control additional-image-input" accept="image/*">
+                            <button type="button" class="btn btn-outline-danger remove-image">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                $('#additionalImagesContainer').append(newImageInput);
+            });
+
+            // Xử lý xóa hình ảnh
+            $(document).on('click', '.remove-image', function() {
+                $(this).closest('.mb-3').remove();
+            });
+
+            // Xử lý preview hình ảnh bổ sung
+            $(document).on('change', 'input[name="AdditionalImages"]', function() {
+                var input = this;
+                var container = $(this).closest('.mb-3');
+
+                // Hiển thị nút xóa
+                container.find('.remove-image').show();
+
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        var imageId = 'preview-' + Math.random().toString(36).substring(7);
+                        var imagePreview = `
+                            <div class="col-4 col-md-3 col-lg-2 preview-item" data-input-id="${input.id}">
+                                <div class="card">
+                                    <img src="${e.target.result}" class="card-img-top" style="height: 100px; object-fit: cover;">
+                                </div>
+                            </div>
+                        `;
+                        $('#additionalImagesPreview').append(imagePreview);
+                    }
+
+                    reader.readAsDataURL(input.files[0]);
+                }
+            });
+
+            // Cảnh báo khi chọn xóa hình ảnh cũ
+            $('#DeleteExistingImages').change(function() {
+                if($(this).is(':checked')) {
+                    if(!confirm('Bạn có chắc muốn xóa tất cả hình ảnh hiện tại của sản phẩm?')) {
+                        $(this).prop('checked', false);
+                    }
+                }
+            });
+        });
+    </script>
 }

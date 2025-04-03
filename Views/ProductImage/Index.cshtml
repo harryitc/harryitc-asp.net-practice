@@ -2,58 +2,135 @@
 
 @{
     ViewData["Title"] = "Quản lý hình ảnh sản phẩm";
+    var selectedProduct = ViewBag.SelectedProduct as Product;
+    var products = ViewBag.Products as IEnumerable<Product>;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>@ViewData["Title"]</h1>
-    <a asp-action="Create" class="btn btn-success">
-        <i class="fas fa-plus me-1"></i> Thêm hình ảnh mới
-    </a>
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        @if (selectedProduct != null)
+        {
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Tất cả sản phẩm</a></li>
+                    <li class="breadcrumb-item active">@selectedProduct.Name</li>
+                </ol>
+            </nav>
+        }
+    </div>
+    <div class="d-flex">
+        @if (selectedProduct != null)
+        {
+            <a asp-action="Create" asp-route-productId="@selectedProduct.Id" class="btn btn-success me-2">
+                <i class="fas fa-plus me-1"></i> Thêm hình ảnh cho sản phẩm này
+            </a>
+        }
+        else
+        {
+            <a asp-action="Create" class="btn btn-success me-2">
+                <i class="fas fa-plus me-1"></i> Thêm hình ảnh mới
+            </a>
+        }
+        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-list me-1"></i> Quản lý sản phẩm
+        </a>
+    </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-images me-2"></i>Danh sách hình ảnh</h5>
-        <span class="badge bg-primary">Tổng: @Model.Count() hình ảnh</span>
-    </div>
-    <div class="card-body">
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-            @foreach (var item in Model) {
-                <div class="col">
-                    <div class="card h-100 shadow-sm image-card">
-                        <div class="position-relative">
-                            <img src="@item.ImageUrl" class="card-img-top" alt="Product Image" style="height: 200px; object-fit: cover;">
-                            <div class="image-overlay">
-                                <div class="d-flex justify-content-center">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Chỉnh sửa">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Xem chi tiết">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Xóa">
-                                        <i class="fas fa-trash"></i>
+@if (selectedProduct != null)
+{
+    <div class="card mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <img src="@selectedProduct.ImageUrl" alt="@selectedProduct.Name" class="me-3 rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                <div>
+                    <h5 class="mb-0">@selectedProduct.Name</h5>
+                    <small class="text-muted">@(selectedProduct.Category?.Name ?? "Không có danh mục")</small>
+                </div>
+            </div>
+            <span class="badge bg-primary">@Model.Count() hình ảnh</span>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                @foreach (var item in Model) {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm image-card">
+                            <div class="position-relative">
+                                <img src="@item.ImageUrl" class="card-img-top" alt="Product Image" style="height: 200px; object-fit: cover;">
+                                <div class="image-overlay">
+                                    <div class="d-flex justify-content-center">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="@item.ImageUrl" target="_blank" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Xem ảnh gốc">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-title mb-0">Hình ảnh #@item.Id</h6>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="mainImage-@item.Id" @(item.IsMainImage ? "checked" : "")>
+                                        <label class="form-check-label small" for="mainImage-@item.Id">Hình chính</label>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <a href="@item.ImageUrl" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="fas fa-external-link-alt me-1"></i> Xem ảnh gốc
                                     </a>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <h6 class="card-title">Hình ảnh #@item.Id</h6>
-                            <p class="card-text small text-muted mb-1">
-                                <strong>Sản phẩm:</strong> @(item.Product?.Name ?? "Không có")
-                            </p>
-                            <p class="card-text small text-truncate">
-                                <a href="@item.ImageUrl" target="_blank" class="text-primary">
-                                    <i class="fas fa-external-link-alt me-1"></i> Xem ảnh gốc
-                                </a>
-                            </p>
-                        </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
         </div>
     </div>
-</div>
+}
+else
+{
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> Vui lòng chọn một sản phẩm để xem hình ảnh.
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Danh sách sản phẩm</h5>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var product in products)
+                {
+                    <div class="col">
+                        <div class="card h-100 product-select-card">
+                            <div class="row g-0">
+                                <div class="col-md-4">
+                                    <img src="@product.ImageUrl" class="img-fluid rounded-start h-100" alt="@product.Name" style="object-fit: cover;">
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@product.Name</h5>
+                                        <p class="card-text small text-muted">@(product.Description?.Length > 50 ? product.Description.Substring(0, 50) + "..." : product.Description)</p>
+                                        <a asp-action="Index" asp-route-productId="@product.Id" class="btn btn-primary btn-sm stretched-link">
+                                            <i class="fas fa-images me-1"></i> Xem hình ảnh
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
 
 <style>
     .image-card {
@@ -83,6 +160,16 @@
     .image-card:hover .image-overlay {
         opacity: 1;
     }
+
+    .product-select-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+    .product-select-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
 </style>
 
 @section Scripts {
@@ -92,6 +179,34 @@
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Xử lý chuyển đổi hình ảnh chính
+            $('.form-check-input').change(function() {
+                var imageId = $(this).attr('id').split('-')[1];
+                var isMain = $(this).is(':checked');
+
+                // Gọi API để cập nhật trạng thái hình ảnh chính
+                $.ajax({
+                    url: '/ProductImage/SetMainImage',
+                    type: 'POST',
+                    data: {
+                        id: imageId,
+                        isMain: isMain,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (isMain) {
+                            // Nếu đã đặt làm hình ảnh chính, bỏ chọn các hình ảnh khác
+                            $('.form-check-input').not('#mainImage-' + imageId).prop('checked', false);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi cập nhật hình ảnh chính!');
+                        // Khôi phục trạng thái checkbox
+                        $(this).prop('checked', !isMain);
+                    }
+                });
             });
         });
     </script>

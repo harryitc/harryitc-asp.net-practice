@@ -56,11 +56,6 @@ namespace FlowerShop.Repository
             if (!string.IsNullOrEmpty(name))
             {
                 string name_khong_dau = VietnameseHelper.RemoveDiacritics(name);
-                // Console.WriteLine($"name_khong_dau = {name_khong_dau}");
-                // name_khong_dau = name_khong_dau.ToLower().Trim();
-                // await query.ForEachAsync(item => {
-                //     Console.WriteLine($"item.Name_khongdau = {item.Name_khongdau}");
-                // });
                 query = query.Where(p => p.Name_khongdau.Contains(name_khong_dau));
             }
 
@@ -85,6 +80,38 @@ namespace FlowerShop.Repository
             }
 
             return query.ToList();
+        }
+
+        // Phương thức quản lý hình ảnh sản phẩm
+        public async Task AddProductImageAsync(ProductImage productImage)
+        {
+            _context.ProductImages.Add(productImage);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteProductImageAsync(int imageId)
+        {
+            var image = await _context.ProductImages.FindAsync(imageId);
+            if (image != null)
+            {
+                _context.ProductImages.Remove(image);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteAllProductImagesAsync(int productId)
+        {
+            var images = await _context.ProductImages.Where(pi => pi.ProductId == productId).ToListAsync();
+            if (images.Any())
+            {
+                _context.ProductImages.RemoveRange(images);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<IEnumerable<ProductImage>> GetProductImagesAsync(int productId)
+        {
+            return await _context.ProductImages.Where(pi => pi.ProductId == productId).ToListAsync();
         }
     }
 

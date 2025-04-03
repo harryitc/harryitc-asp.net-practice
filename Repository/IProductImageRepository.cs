@@ -9,6 +9,7 @@ namespace FlowerShop.Repository
         Task<IEnumerable<ProductImage>> GetAllAsync();
         Task<ProductImage> GetByIdAsync(int id);
         Task<IEnumerable<ProductImage>> GetImagesByProductIdAsync(int productId);
+        Task<IEnumerable<ProductImage>> GetByProductIdAsync(int productId);
         Task AddAsync(ProductImage productImage);
         Task UpdateAsync(ProductImage productImage);
         Task DeleteAsync(int id);

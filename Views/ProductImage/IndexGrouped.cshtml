@@ -1,0 +1,107 @@
+@model IEnumerable<ProductImagesGroup>
+
+@{
+    ViewData["Title"] = "Quản lý hình ảnh sản phẩm";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>@ViewData["Title"]</h1>
+    <div>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="fas fa-plus me-1"></i> Thêm hình ảnh mới
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fas fa-images me-2"></i>Hình ảnh theo sản phẩm</h5>
+    </div>
+    <div class="card-body">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var group in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 product-card shadow-sm">
+                        <div class="position-relative">
+                            <img src="@group.Product.ImageUrl" class="card-img-top" alt="@group.Product.Name" style="height: 200px; object-fit: cover;">
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-primary rounded-pill">@group.Count hình ảnh</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@group.Product.Name</h5>
+                            <p class="card-text small text-muted">@(group.Product.Description?.Length > 60 ? group.Product.Description.Substring(0, 60) + "..." : group.Product.Description)</p>
+                            
+                            <div class="image-thumbnails mb-3">
+                                <div class="row g-1">
+                                    @foreach (var image in group.Images.Take(4))
+                                    {
+                                        <div class="col-3">
+                                            <img src="@image.ImageUrl" class="img-thumbnail" style="width: 100%; height: 50px; object-fit: cover;">
+                                        </div>
+                                    }
+                                    @if (group.Count > 4)
+                                    {
+                                        <div class="col-3 position-relative">
+                                            <div class="more-images">
+                                                <span>+@(group.Count - 4)</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="Index" asp-route-productId="@group.ProductId" class="btn btn-primary">
+                                    <i class="fas fa-eye me-1"></i> Xem tất cả
+                                </a>
+                                <a asp-controller="Product" asp-action="Edit" asp-route-id="@group.ProductId" class="btn btn-outline-secondary">
+                                    <i class="fas fa-edit me-1"></i> Sửa sản phẩm
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .product-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    
+    .more-images {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 50px;
+        background-color: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        border-radius: 0.25rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+}

@@ -1,4 +1,6 @@
-﻿namespace FlowerShop.Repository
+﻿using FlowerShop.Models;
+
+namespace FlowerShop.Repository
 {
     public interface ICategoryRepository
     {

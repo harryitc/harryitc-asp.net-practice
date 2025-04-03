@@ -11,5 +11,8 @@ namespace FlowerShop.Models
 
         public int ProductId { get; set; }
         public Product? Product { get; set; }
+
+        [DisplayName("Hình ảnh chính")]
+        public bool IsMainImage { get; set; } = false;
     }
 }

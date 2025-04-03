@@ -31,6 +31,14 @@ namespace FlowerShop.Repository
             return await _context.ProductImages.Where(pi => pi.ProductId == productId).ToListAsync();
         }
 
+        public async Task<IEnumerable<ProductImage>> GetByProductIdAsync(int productId)
+        {
+            return await _context.ProductImages
+                .Include(p => p.Product)
+                .Where(pi => pi.ProductId == productId)
+                .ToListAsync();
+        }
+
         public async Task AddAsync(ProductImage productImage)
         {
             await _context.ProductImages.AddAsync(productImage);

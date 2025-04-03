@@ -2,151 +2,584 @@
 
 @{
     ViewData["Title"] = Model.Name;
+    var category = Model.Category?.Name ?? "Không có danh mục";
 }
 
-<div class="d-flex align-items-center" style="gap: 20px;">
-    <h1>@ViewData["Title"]</h1>
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Filter" asp-route-categoryId="@Model.CategoryId">@category</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
     <div>
         @if (User.IsInRole(RoleUser.Admin)){
-            <a class="btn btn-warning" asp-area="" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> <span> | </span>
+            <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model?.Id">
+                <i class="fas fa-edit me-1"></i> Chỉnh sửa
+            </a>
         }
-        <a class="btn btn-dark" asp-area="" asp-action="Index">Back to List</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại
+        </a>
     </div>
 </div>
-<hr />
-
 
 <div class="row">
-    <!-- Product Image & Thumbnails -->
-    <div class="col-md-6 d-flex">
-        @if (Model.ProductImages != null && Model.ProductImages.Count > 0)
-        {
-            <div class="thumbnail-container d-flex flex-column me-3">
-                <button class="nav-arrow top" onclick="scrollThumbnails(-1)">&#9650;</button>
-                <div class="thumbnail-column" id="thumbnailColumn">
-                    <div class="thumbnail-item">
-                        <img src="@Model.ImageUrl" onclick="changeImage(this.src)" alt="Thumbnail">
-                    </div>
-                    @if (Model.ProductImages != null)
-                    {
-                        @foreach (var image in Model.ProductImages)
-                        {
-                            <div class="thumbnail-item">
-                                <img src="@image.ImageUrl" onclick="changeImage(this.src)" alt="Thumbnail">
+    <div class="col-lg-9">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Product Image & Thumbnails -->
+                    <div class="col-md-6">
+                        <div class="product-gallery">
+                            <div class="main-image-container position-relative mb-3">
+                                <img src="@Model.ImageUrl" alt="@Model.Name" class="main-product-image img-fluid rounded" id="mainImage">
+                                <div class="zoom-overlay">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
                             </div>
-                        }
-                    }
-                </div>
-                <button class="nav-arrow bottom" onclick="scrollThumbnails(1)">&#9660;</button>
-            </div>
-        }
 
-        <div class="product-image-container border img-zoom-container">
-            <img src="@Model.ImageUrl" alt="@Model.Name" class="product-image img-fluid" id="mainImage">
-            <div id="myresult" class="img-zoom-result position-absolute"></div>
+                            <div class="thumbnails-row">
+                                <div class="thumbnail-item active" data-src="@Model.ImageUrl">
+                                    <img src="@Model.ImageUrl" alt="@Model.Name" class="img-thumbnail">
+                                </div>
+                                @if (Model.ProductImages != null && Model.ProductImages.Any())
+                                {
+                                    @foreach (var image in Model.ProductImages)
+                                    {
+                                        <div class="thumbnail-item" data-src="@image.ImageUrl">
+                                            <img src="@image.ImageUrl" alt="@Model.Name" class="img-thumbnail">
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="col-md-6">
+                        <div class="product-info">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-info me-2">@category</span>
+                                <div class="product-rating">
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                    <span class="ms-1 text-muted">(4.5)</span>
+                                </div>
+                            </div>
+
+                            <h2 class="product-title mb-3">@Model.Name</h2>
+
+                            <div class="product-price-container mb-3">
+                                @if (Model.Discount > 0)
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <span class="current-price">@Model.Price.ToString("N0")đ</span>
+                                        <span class="original-price ms-2">@Model.OriginialPrice.ToString("N0")đ</span>
+                                        <span class="discount-badge ms-2">-@Model.Discount%</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="current-price">@Model.Price.ToString("N0")đ</span>
+                                }
+                            </div>
+
+                            <div class="product-description mb-4">
+                                <p>@Model.Description</p>
+                            </div>
+
+                            @if (Model.Promotion != 0)
+                            {
+                                <div class="promotion-box mb-4">
+                                    <h5><i class="fas fa-gift text-danger me-2"></i>Quà tặng kèm</h5>
+                                    <p class="mb-0">@Model.Promotion</p>
+                                </div>
+                            }
+
+                            <div class="product-actions mb-4">
+                                <form id="addToCartForm" asp-controller="Cart" asp-action="AddToCart" method="post" class="mb-3">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@Model.Id" />
+                                    <div class="d-flex align-items-center">
+                                        <div class="quantity-control me-3">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" id="decreaseQuantity">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" class="form-control mx-2" id="quantity" name="quantity"
+                                                   value="1" min="1" style="width: 60px; text-align: center;" />
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" id="increaseQuantity">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-success me-2">
+                                            <i class="fas fa-cart-plus me-1"></i> Thêm vào giỏ
+                                        </button>
+
+                                        <button type="button" id="buyNowBtn" class="btn btn-primary">
+                                            <i class="fas fa-bolt me-1"></i> Mua ngay
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="product-benefits">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="benefit-item">
+                                            <i class="fas fa-truck text-primary"></i>
+                                            <span>Giao hàng miễn phí toàn quốc</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="benefit-item">
+                                            <i class="fas fa-shield-alt text-primary"></i>
+                                            <span>Bảo hành chính hãng 12 tháng</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="benefit-item">
+                                            <i class="fas fa-sync-alt text-primary"></i>
+                                            <span>Đổi trả trong vòng 7 ngày</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="benefit-item">
+                                            <i class="fas fa-check-circle text-primary"></i>
+                                            <span>Sản phẩm chính hãng 100%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <ul class="nav nav-tabs card-header-tabs" id="productTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#description">Mô tả chi tiết</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#reviews">Đánh giá (0)</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#shipping">Vận chuyển & Thanh toán</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="description">
+                        <h5>Thông tin sản phẩm</h5>
+                        <p>@Model.Description</p>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    </div>
+                    <div class="tab-pane fade" id="reviews">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Chưa có đánh giá nào cho sản phẩm này.
+                        </div>
+                        <div class="mt-3">
+                            <h5>Viết đánh giá của bạn</h5>
+                            <form>
+                                <div class="mb-3">
+                                    <label class="form-label">Xếp hạng</label>
+                                    <div class="rating-input">
+                                        <i class="far fa-star" data-rating="1"></i>
+                                        <i class="far fa-star" data-rating="2"></i>
+                                        <i class="far fa-star" data-rating="3"></i>
+                                        <i class="far fa-star" data-rating="4"></i>
+                                        <i class="far fa-star" data-rating="5"></i>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reviewTitle" class="form-label">Tiêu đề</label>
+                                    <input type="text" class="form-control" id="reviewTitle">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reviewContent" class="form-label">Nội dung đánh giá</label>
+                                    <textarea class="form-control" id="reviewContent" rows="3"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="shipping">
+                        <h5>Chính sách vận chuyển</h5>
+                        <p>Chúng tôi cung cấp dịch vụ giao hàng miễn phí cho tất cả đơn hàng trên toàn quốc.</p>
+                        <p>Thời gian giao hàng: 1-3 ngày làm việc (tùy khu vực).</p>
+
+                        <h5 class="mt-4">Phương thức thanh toán</h5>
+                        <ul>
+                            <li>Thanh toán khi nhận hàng (COD)</li>
+                            <li>Chuyển khoản ngân hàng</li>
+                            <li>Ví điện tử (Momo, ZaloPay, VNPay)</li>
+                            <li>Thẻ tín dụng/ghi nợ</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Product Details -->
-    <div class="col-md-6">
-        <h2>@Model.Name</h2>
-        <p class="text-muted">Khoảng cách: 0.4 km</p>
-        <div class="d-flex align-items-center">
-            <span class="price">@Model.Price.ToString("N0")đ</span>
-            @* <span class="original-price">@(Model.OriginalPrice.ToString("N0"))đ</span> *@
-            <span class="discount ms-2">(-@Model.Discount%)</span>
-        </div>
-
-        <div class="alert alert-info">
-            <p>Quà tặng kèm</p>
-            <p>① @Model.Promotion</p>
-        </div>
-
-        <div class="mt-4">
-            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-inline-block me-2">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="productId" value="@Model.Id" />
-                <div class="form-group mb-3">
-                    <label for="quantity" class="form-label">Số lượng:</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" 
-                           value="1" min="1" style="width: 100px" />
+    <div class="col-lg-3">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-store me-2"></i>Thông tin cửa hàng</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="store-avatar me-3">
+                        <img src="/images/logo.png" alt="Store Logo" class="rounded-circle" width="50" height="50">
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Flower Shop</h6>
+                        <div class="store-rating">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star-half-alt text-warning"></i>
+                            <span class="ms-1">(4.8)</span>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-cart-plus"></i> Thêm vào giỏ
-                </button>
-            </form>
 
-            <form asp-controller="Order" asp-action="Create" method="post" class="d-inline-block">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="productId" value="@Model.Id" />
-                <div class="form-group mb-3">
-                    <input type="hidden" id="quantity" name="quantity" value="1" />
+                <div class="store-info">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt text-danger"></i>
+                        <span>123 Đường Hoa Hồng, Quận 1, TP.HCM</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone text-primary"></i>
+                        <span>0123 456 789</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-envelope text-primary"></i>
+                        <span>contact@flowershop.com</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock text-primary"></i>
+                        <span>8:00 - 21:00 (T2-CN)</span>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-lg btn-primary">
-                    <i class="fas fa-cart-plus"></i> MUA NGAY
-                </button>
-            </form>
+
+                <div class="mt-3">
+                    <a href="#" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-store me-1"></i> Xem cửa hàng
+                    </a>
+                </div>
+            </div>
         </div>
-        <p class="mt-3 fw-bold">Giao hàng miễn phí tại chỗ</p>
-        <ul class="list-unstyled mt-2">
-            <li><i class="fas fa-check text-success"></i> Bảo hành chính hãng 24 tháng.</li>
-            <li><i class="fas fa-check text-success"></i> Hỗ trợ đổi trả trong 7 ngày.</li>
-            <li><i class="fas fa-check text-success"></i> Miễn phí giao hàng toàn quốc.</li>
-        </ul>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Sản phẩm liên quan</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex">
+                            <img src="/images/products/1.jpg" alt="Product" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h6 class="mb-1">Hoa hồng đỏ</h6>
+                                <div class="text-primary">350,000đ</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex">
+                            <img src="/images/products/2.jpg" alt="Product" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h6 class="mb-1">Hoa cúc trắng</h6>
+                                <div class="text-primary">280,000đ</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex">
+                            <img src="/images/products/3.jpg" alt="Product" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h6 class="mb-1">Hoa lan tím</h6>
+                                <div class="text-primary">420,000đ</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
-    .product-image {
-        max-width: 100%;
+    /* Product Gallery */
+    .product-gallery {
+        margin-bottom: 20px;
+    }
+
+    .main-image-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .main-product-image {
+        width: 100%;
         height: auto;
-        max-height: 31rem;
-        transition: opacity 0.3s ease-in-out;
-        /* Animation mượt khi đổi ảnh */
+        transition: transform 0.5s ease;
+        cursor: zoom-in;
     }
 
-    /* Giá sản phẩm */
-    .price {
-        font-size: 1.5rem;
-        color: #dc3545;
-        font-weight: bold;
+    .main-image-container:hover .main-product-image {
+        transform: scale(1.05);
     }
 
-    .original-price {
-        text-decoration: line-through;
-        color: #6c757d;
-        margin-left: 10px;
+    .zoom-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: rgba(255,255,255,0.8);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
     }
 
-    .discount {
-        color: #dc3545;
-        font-size: 0.9rem;
+    .thumbnails-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
     }
 
-    /* Hộp khuyến mãi */
-    .promo-box {
-        background-color: #ffebee;
-        padding: 10px;
+    .thumbnail-item {
+        width: 70px;
+        height: 70px;
+        border: 2px solid transparent;
         border-radius: 5px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .thumbnail-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .thumbnail-item.active {
+        border-color: #007bff;
+    }
+
+    .thumbnail-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Product Info */
+    .product-title {
+        font-size: 1.8rem;
+        font-weight: 600;
         margin-bottom: 15px;
     }
 
-    /* Nút mua ngay */
-    .btn-buy {
-        background-color: #dc3545;
-        color: white;
+    .current-price {
+        font-size: 1.8rem;
         font-weight: bold;
-        padding: 10px 20px;
+        color: #dc3545;
     }
 
-    .btn-buy:hover {
-        background-color: #c82333;
+    .original-price {
+        font-size: 1.2rem;
+        text-decoration: line-through;
+        color: #6c757d;
+    }
+
+    .discount-badge {
+        background-color: #dc3545;
         color: white;
+        padding: 3px 8px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    .promotion-box {
+        background-color: #fff8e1;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        border-radius: 5px;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+    }
+
+    .benefit-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+
+    .benefit-item i {
+        font-size: 1.2rem;
+        margin-right: 10px;
+    }
+
+    /* Store Info */
+    .store-info {
+        margin-top: 15px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .info-item i {
+        width: 20px;
+        margin-right: 10px;
+    }
+
+    /* Rating */
+    .rating-input {
+        display: flex;
+        gap: 5px;
+        font-size: 1.5rem;
+    }
+
+    .rating-input i {
+        cursor: pointer;
+        color: #adb5bd;
+    }
+
+    .rating-input i.fas {
+        color: #ffc107;
     }
 </style>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ZoomImageScriptsPartial");
-    }
+    <script>
+        $(document).ready(function() {
+            // Xử lý thumbnail
+            $('.thumbnail-item').click(function() {
+                var imgSrc = $(this).data('src');
+                $('#mainImage').attr('src', imgSrc);
+                $('.thumbnail-item').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Xử lý zoom ảnh
+            $('.zoom-overlay').click(function() {
+                var imgSrc = $('#mainImage').attr('src');
+                Swal.fire({
+                    imageUrl: imgSrc,
+                    imageWidth: 800,
+                    imageHeight: 600,
+                    imageAlt: '@Model.Name',
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    width: 'auto'
+                });
+            });
+
+            // Xử lý tăng giảm số lượng
+            $('#increaseQuantity').click(function() {
+                var quantity = parseInt($('#quantity').val());
+                $('#quantity').val(quantity + 1);
+            });
+
+            $('#decreaseQuantity').click(function() {
+                var quantity = parseInt($('#quantity').val());
+                if (quantity > 1) {
+                    $('#quantity').val(quantity - 1);
+                }
+            });
+
+            // Xử lý mua ngay
+            $('#buyNowBtn').click(function() {
+                var productId = '@Model.Id';
+                var quantity = $('#quantity').val();
+
+                // Thêm vào giỏ hàng trước, sau đó chuyển đến trang thanh toán
+                $.ajax({
+                    url: '@Url.Action("AddToCart", "Cart")',
+                    type: 'POST',
+                    data: {
+                        productId: productId,
+                        quantity: quantity,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function() {
+                        window.location.href = '@Url.Action("Create", "Order")';
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
+                        });
+                    }
+                });
+            });
+
+            // Xử lý đánh giá sao
+            $('.rating-input i').hover(
+                function() {
+                    var rating = $(this).data('rating');
+                    for (var i = 1; i <= 5; i++) {
+                        if (i <= rating) {
+                            $('.rating-input i[data-rating="' + i + '"]').removeClass('far').addClass('fas');
+                        } else {
+                            $('.rating-input i[data-rating="' + i + '"]').removeClass('fas').addClass('far');
+                        }
+                    }
+                },
+                function() {
+                    $('.rating-input i').removeClass('fas').addClass('far');
+                }
+            );
+
+            $('.rating-input i').click(function() {
+                var rating = $(this).data('rating');
+                // Lưu giá trị rating vào form
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'rating',
+                    value: rating
+                }).appendTo('form');
+
+                // Giữ trạng thái sao đã chọn
+                $('.rating-input i').off('mouseout');
+
+                for (var i = 1; i <= 5; i++) {
+                    if (i <= rating) {
+                        $('.rating-input i[data-rating="' + i + '"]').removeClass('far').addClass('fas');
+                    } else {
+                        $('.rating-input i[data-rating="' + i + '"]').removeClass('fas').addClass('far');
+                    }
+                }
+            });
+        });
+    </script>
 }
