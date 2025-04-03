@@ -37,18 +37,28 @@ else
                         </td>
                         <td>@item.Price.ToString("N0")đ</td>
                         <td>
-                            <form asp-action="UpdateQuantity" method="post" class="d-flex align-items-center">
+                            <form asp-controller="Cart" asp-action="UpdateQuantity" method="post" class="d-flex align-items-center quantity-form">
+                                @Html.AntiForgeryToken()
                                 <input type="hidden" name="productId" value="@item.ProductId" />
-                                <input type="number" name="quantity" value="@item.Quantity" 
-                                       min="1" style="width: 70px" class="form-control me-2" />
-                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <div class="input-group" style="width: 120px">
+                                    <button type="button" class="btn btn-outline-secondary decrease-quantity">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" name="quantity" value="@item.Quantity"
+                                           min="1" class="form-control text-center quantity-input" />
+                                    <button type="button" class="btn btn-outline-secondary increase-quantity">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-outline-primary ms-2 update-quantity">
                                     <i class="fas fa-sync"></i>
                                 </button>
                             </form>
                         </td>
                         <td>@item.Total.ToString("N0")đ</td>
                         <td>
-                            <form asp-action="RemoveFromCart" method="post">
+                            <form asp-controller="Cart" asp-action="RemoveFromCart" method="post" class="remove-form">
+                                @Html.AntiForgeryToken()
                                 <input type="hidden" name="productId" value="@item.ProductId" />
                                 <button type="submit" class="btn btn-sm btn-danger"
                                         onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?')">
@@ -77,4 +87,54 @@ else
             Thanh toán <i class="fas fa-arrow-right"></i>
         </a>
     </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Xử lý tăng số lượng
+            $('.increase-quantity').click(function() {
+                var input = $(this).closest('.input-group').find('.quantity-input');
+                var value = parseInt(input.val());
+                input.val(value + 1);
+
+                // Tự động submit form khi thay đổi số lượng
+                $(this).closest('form').submit();
+            });
+
+            // Xử lý giảm số lượng
+            $('.decrease-quantity').click(function() {
+                var input = $(this).closest('.input-group').find('.quantity-input');
+                var value = parseInt(input.val());
+                if (value > 1) {
+                    input.val(value - 1);
+
+                    // Tự động submit form khi thay đổi số lượng
+                    $(this).closest('form').submit();
+                }
+            });
+
+            // Xử lý submit form cập nhật số lượng
+            $('.quantity-form').submit(function(e) {
+                e.preventDefault();
+
+                var form = $(this);
+                var url = form.attr('action');
+                var data = form.serialize();
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: data,
+                    success: function() {
+                        // Reload trang để cập nhật giỏ hàng
+                        location.reload();
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi cập nhật số lượng!');
+                    }
+                });
+            });
+        });
+    </script>
 }

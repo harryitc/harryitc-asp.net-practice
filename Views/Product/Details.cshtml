@@ -129,6 +129,39 @@
                                         </button>
                                     </div>
                                 </form>
+
+                                <script>
+                                    // Ngăn chặn hành vi mặc định của form khi submit
+                                    document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+                                        e.preventDefault();
+
+                                        var form = $(this);
+                                        var url = form.attr('action');
+                                        var data = form.serialize();
+
+                                        $.ajax({
+                                            url: url,
+                                            type: 'POST',
+                                            data: data,
+                                            success: function() {
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: 'Thành công!',
+                                                    text: 'Đã thêm sản phẩm vào giỏ hàng',
+                                                    showConfirmButton: false,
+                                                    timer: 1500
+                                                });
+                                            },
+                                            error: function() {
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Lỗi',
+                                                    text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
+                                                });
+                                            }
+                                        });
+                                    });
+                                </script>
                             </div>
 
                             <div class="product-benefits">
@@ -530,10 +563,14 @@
                         quantity: quantity,
                         __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                     },
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     success: function() {
                         window.location.href = '@Url.Action("Create", "Order")';
                     },
-                    error: function() {
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
                         Swal.fire({
                             icon: 'error',
                             title: 'Lỗi',

@@ -169,19 +169,19 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <a class="dropdown-item" href="@Url.Action("Details", new { id = order.Id })">
+                                            <a class="dropdown-item" href="@Url.Action("Details", "Order", new { id = order.Id })">
                                                 <i class="fas fa-eye text-info me-2"></i> Xem chi tiết
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="@Url.Action("Edit", new { id = order.Id })">
+                                            <a class="dropdown-item" href="@Url.Action("Edit", "Order", new { id = order.Id })">
                                                 <i class="fas fa-edit text-warning me-2"></i> Chỉnh sửa
                                             </a>
                                         </li>
                                         @if (order.Status == "Pending")
                                         {
                                             <li>
-                                                <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                                <form asp-controller="Order" asp-action="UpdateStatus" method="post" class="d-inline">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@order.Id" />
                                                     <input type="hidden" name="status" value="Processing" />
@@ -195,7 +195,7 @@
                                         @if (order.Status == "Processing")
                                         {
                                             <li>
-                                                <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                                <form asp-controller="Order" asp-action="UpdateStatus" method="post" class="d-inline">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@order.Id" />
                                                     <input type="hidden" name="status" value="Shipping" />
@@ -209,7 +209,7 @@
                                         @if (order.Status == "Shipping")
                                         {
                                             <li>
-                                                <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                                <form asp-controller="Order" asp-action="UpdateStatus" method="post" class="d-inline">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@order.Id" />
                                                     <input type="hidden" name="status" value="Completed" />
@@ -222,7 +222,7 @@
                                         }
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <form asp-action="Delete" method="post" class="d-inline">
+                                            <form asp-controller="Order" asp-action="Delete" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@order.Id" />
                                                 <button type="submit" class="dropdown-item text-danger" 
@@ -295,14 +295,15 @@
             // Filter orders
             $('#orderTabs .nav-link').click(function(e) {
                 e.preventDefault();
-                $(this).tab('show');
+                $('#orderTabs .nav-link').removeClass('active');
+                $(this).addClass('active');
                 
                 var filter = $(this).data('filter');
                 
                 if (filter === 'all') {
-                    table.columns(4).search('').draw();
+                    table.column(4).search('').draw();
                 } else {
-                    table.columns(4).search(filter).draw();
+                    table.column(4).search(filter).draw();
                 }
             });
             

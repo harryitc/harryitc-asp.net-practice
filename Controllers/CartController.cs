@@ -31,13 +31,19 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddToCart([FromBody] AddToCartModel model)
+    public async Task<IActionResult> AddToCart(int productId, int quantity)
     {
-        var product = await _productRepository.GetByIdAsync(model.ProductId);
+        var product = await _productRepository.GetByIdAsync(productId);
         if (product == null) return NotFound();
 
-        _cartService.AddToCart(product, model.Quantity);
-        return Ok();
+        _cartService.AddToCart(product, quantity);
+
+        // Nếu là AJAX request, trả về Ok
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            return Ok();
+
+        // Nếu không, chuyển hướng về trang giỏ hàng
+        return RedirectToAction(nameof(Index));
     }
 
     public class AddToCartModel
@@ -48,10 +54,16 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult UpdateQuantity([FromBody] UpdateQuantityModel model)
+    public IActionResult UpdateQuantity(int productId, int quantity)
     {
-        _cartService.UpdateQuantity(model.ProductId, model.Quantity);
-        return Ok();
+        _cartService.UpdateQuantity(productId, quantity);
+
+        // Nếu là AJAX request, trả về Ok
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            return Ok();
+
+        // Nếu không, chuyển hướng về trang giỏ hàng
+        return RedirectToAction(nameof(Index));
     }
 
     public class UpdateQuantityModel
@@ -61,6 +73,7 @@ public class CartController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult RemoveFromCart(int productId)
     {
         _cartService.RemoveFromCart(productId);
