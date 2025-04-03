@@ -7,11 +7,22 @@
 <h1>@ViewData["Title"]</h1>
 
 <div class="mb-4">
-    <div class="btn-group" role="group">
-        <button type="button" class="btn btn-outline-primary active" data-filter="all">Tất cả</button>
-        <button type="button" class="btn btn-outline-warning" data-filter="Pending">Đang chờ</button>
-        <button type="button" class="btn btn-outline-success" data-filter="Completed">Hoàn thành</button>
-        <button type="button" class="btn btn-outline-danger" data-filter="Cancelled">Đã hủy</button>
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary active" data-filter="all">Tất cả</button>
+            <button type="button" class="btn btn-outline-warning" data-filter="Pending">Đang chờ</button>
+            <button type="button" class="btn btn-outline-info" data-filter="Processing">Đang xử lý</button>
+            <button type="button" class="btn btn-outline-primary" data-filter="Shipping">Đang giao</button>
+            <button type="button" class="btn btn-outline-success" data-filter="Completed">Hoàn thành</button>
+            <button type="button" class="btn btn-outline-danger" data-filter="Cancelled">Đã hủy</button>
+        </div>
+        <div>
+            <span class="badge bg-warning me-1">@Model.Count(o => o.Status == "Pending")</span>
+            <span class="badge bg-info me-1">@Model.Count(o => o.Status == "Processing")</span>
+            <span class="badge bg-primary me-1">@Model.Count(o => o.Status == "Shipping")</span>
+            <span class="badge bg-success me-1">@Model.Count(o => o.Status == "Completed")</span>
+            <span class="badge bg-danger">@Model.Count(o => o.Status == "Cancelled")</span>
+        </div>
     </div>
 </div>
 
@@ -39,23 +50,53 @@
                     <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
                     <td>@order.TotalPrice.ToString("N0")đ</td>
                     <td>
-                        <span class="badge bg-@(order.Status == "Pending" ? "warning" : 
-                                             order.Status == "Completed" ? "success" : 
+                        <span class="badge bg-@(order.Status == "Pending" ? "warning" :
+                                             order.Status == "Processing" ? "info" :
+                                             order.Status == "Shipping" ? "primary" :
+                                             order.Status == "Completed" ? "success" :
                                              "danger")">
-                            @order.Status
+                            @(order.Status == "Pending" ? "Đang chờ" :
+                              order.Status == "Processing" ? "Đang xử lý" :
+                              order.Status == "Shipping" ? "Đang giao" :
+                              order.Status == "Completed" ? "Hoàn thành" :
+                              "Đã hủy")
                         </span>
                     </td>
                     <td>
                         <div class="btn-group">
-                            <a asp-action="Details" asp-route-id="@order.Id" 
+                            <a asp-action="Details" asp-route-id="@order.Id"
                                class="btn btn-sm btn-info">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a asp-action="Edit" asp-route-id="@order.Id" 
+                            <a asp-action="Edit" asp-route-id="@order.Id"
                                class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit"></i>
                             </a>
                             @if (order.Status == "Pending")
+                            {
+                                <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@order.Id" />
+                                    <input type="hidden" name="status" value="Processing" />
+                                    <button type="submit" class="btn btn-sm btn-info"
+                                            onclick="return confirm('Chuyển đơn hàng sang trạng thái Đang xử lý?')">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </form>
+                            }
+                            @if (order.Status == "Processing")
+                            {
+                                <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@order.Id" />
+                                    <input type="hidden" name="status" value="Shipping" />
+                                    <button type="submit" class="btn btn-sm btn-primary"
+                                            onclick="return confirm('Chuyển đơn hàng sang trạng thái Đang giao?')">
+                                        <i class="fas fa-shipping-fast"></i>
+                                    </button>
+                                </form>
+                            }
+                            @if (order.Status == "Shipping")
                             {
                                 <form asp-action="UpdateStatus" method="post" class="d-inline">
                                     @Html.AntiForgeryToken()
@@ -90,7 +131,7 @@
             $('[data-filter]').click(function() {
                 $(this).addClass('active').siblings().removeClass('active');
                 var filter = $(this).data('filter');
-                
+
                 if (filter === 'all') {
                     $('tbody tr').show();
                 } else {
