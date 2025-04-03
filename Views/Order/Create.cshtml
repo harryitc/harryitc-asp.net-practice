@@ -1,0 +1,118 @@
+@{
+    ViewData["Title"] = "Đặt hàng";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Thông tin giao hàng</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label for="shippingName" class="form-label">Tên người nhận</label>
+                        <input type="text" class="form-control" id="shippingName" name="shippingName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="shippingPhone" class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control" id="shippingPhone" name="shippingPhone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="shippingAddress" class="form-label">Địa chỉ giao hàng</label>
+                        <textarea class="form-control" id="shippingAddress" name="shippingAddress" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="note" class="form-label">Ghi chú (tùy chọn)</label>
+                        <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Đặt hàng</button>
+                    <a asp-controller="Cart" asp-action="Index" class="btn btn-secondary">Quay lại giỏ hàng</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Đơn hàng của bạn</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-items">
+                            <!-- Dữ liệu giỏ hàng sẽ được hiển thị ở đây -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
+                                <td class="text-end"><strong id="cart-total">0đ</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Lấy dữ liệu giỏ hàng từ API
+            $.ajax({
+                url: '@Url.Action("GetCart", "Cart")',
+                type: 'GET',
+                success: function(cart) {
+                    if (cart && cart.length > 0) {
+                        let cartHtml = '';
+                        let total = 0;
+                        
+                        // Hiển thị từng sản phẩm trong giỏ hàng
+                        cart.forEach(function(item) {
+                            const itemTotal = item.price * item.quantity;
+                            total += itemTotal;
+                            
+                            cartHtml += `
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="${item.imageUrl}" alt="${item.productName}" 
+                                                 style="width: 40px; height: 40px; object-fit: cover;" class="me-2">
+                                            <span>${item.productName}</span>
+                                        </div>
+                                    </td>
+                                    <td>${item.quantity}</td>
+                                    <td>${item.price.toLocaleString('vi-VN')}đ</td>
+                                    <td class="text-end">${itemTotal.toLocaleString('vi-VN')}đ</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        // Cập nhật HTML
+                        $('#cart-items').html(cartHtml);
+                        $('#cart-total').text(total.toLocaleString('vi-VN') + 'đ');
+                    } else {
+                        // Giỏ hàng trống, chuyển hướng về trang giỏ hàng
+                        window.location.href = '@Url.Action("Index", "Cart")';
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra khi tải giỏ hàng. Vui lòng thử lại sau.');
+                    window.location.href = '@Url.Action("Index", "Cart")';
+                }
+            });
+        });
+    </script>
+}

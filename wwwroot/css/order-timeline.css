@@ -1,0 +1,51 @@
+/* CSS cho timeline đơn hàng */
+.order-timeline {
+    margin: 30px 0;
+}
+
+.timeline-step {
+    text-align: center;
+    position: relative;
+    width: 25%;
+}
+
+.timeline-step i {
+    display: block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #6c757d;
+    margin: 0 auto 5px;
+    font-size: 18px;
+}
+
+.timeline-step.active i {
+    background-color: #28a745;
+    color: white;
+}
+
+.timeline-step span {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.timeline-step.active span {
+    color: #28a745;
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .timeline-step i {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        font-size: 14px;
+    }
+    
+    .timeline-step span {
+        font-size: 12px;
+    }
+}

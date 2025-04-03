@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/FlowerShop.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/order-timeline.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -52,17 +53,17 @@
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <div class="nav-item dropdown">
-                                <a class="nav-link position-relative" 
-                                   data-bs-toggle="dropdown" 
-                                   data-bs-tooltip="tooltip" 
-                                   data-bs-placement="bottom" 
+                                <a class="nav-link position-relative"
+                                   data-bs-toggle="dropdown"
+                                   data-bs-tooltip="tooltip"
+                                   data-bs-placement="bottom"
                                    title="Tổng: <span id='cartTotalTooltip'>0đ</span>">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
                                         0
                                     </span>
                                 </a>
-                                <div class="dropdown-menu dropdown-menu-end p-3" aria-labelledby="cartDropdown" 
+                                <div class="dropdown-menu dropdown-menu-end p-3" aria-labelledby="cartDropdown"
                                      style="min-width: 300px; max-height: 400px; overflow-y: auto;">
                                     <div id="cartItems">
                                         <!-- Cart items will be loaded here -->

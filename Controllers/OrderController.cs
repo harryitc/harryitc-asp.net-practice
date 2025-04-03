@@ -27,7 +27,7 @@ namespace FlowerShop.Controllers
             var cart = _cartService.GetCart();
             if (!cart.Any())
                 return RedirectToAction("Index", "Cart");
-                
+
             return View();
         }
 
@@ -133,17 +133,37 @@ namespace FlowerShop.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, Order order)
+        public async Task<IActionResult> Edit(int id, Order updatedOrder)
         {
-            if (id != order.Id)
+            if (id != updatedOrder.Id)
                 return NotFound();
+
+            // Lấy đơn hàng hiện tại từ database
+            var existingOrder = await _orderRepository.GetByIdAsync(id);
+            if (existingOrder == null)
+                return NotFound();
+
+            // Cập nhật thông tin đơn hàng
+            existingOrder.ShippingName = updatedOrder.ShippingName;
+            existingOrder.ShippingPhone = updatedOrder.ShippingPhone;
+            existingOrder.ShippingAddress = updatedOrder.ShippingAddress;
+            existingOrder.Note = updatedOrder.Note;
+            existingOrder.Status = updatedOrder.Status;
 
             if (ModelState.IsValid)
             {
-                await _orderRepository.UpdateAsync(order);
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _orderRepository.UpdateAsync(existingOrder);
+                    TempData["SuccessMessage"] = "Cập nhật đơn hàng thành công!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật đơn hàng: " + ex.Message);
+                }
             }
-            return View(order);
+            return View(existingOrder);
         }
 
         // GET: Order/Cancel/5
