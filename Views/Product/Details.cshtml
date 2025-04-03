@@ -132,34 +132,22 @@
 
                                 <script>
                                     // Ngăn chặn hành vi mặc định của form khi submit
-                                    document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+                                    document.getElementById('addToCartForm').addEventListener('submit', async function(e) {
                                         e.preventDefault();
 
-                                        var form = $(this);
-                                        var url = form.attr('action');
-                                        var data = form.serialize();
+                                        var productId = @Model.Id;
+                                        var quantity = parseInt($('#quantity').val());
 
-                                        $.ajax({
-                                            url: url,
-                                            type: 'POST',
-                                            data: data,
-                                            success: function() {
-                                                Swal.fire({
-                                                    icon: 'success',
-                                                    title: 'Thành công!',
-                                                    text: 'Đã thêm sản phẩm vào giỏ hàng',
-                                                    showConfirmButton: false,
-                                                    timer: 1500
-                                                });
-                                            },
-                                            error: function() {
-                                                Swal.fire({
-                                                    icon: 'error',
-                                                    title: 'Lỗi',
-                                                    text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
-                                                });
-                                            }
-                                        });
+                                        // Sử dụng hàm addToCart từ cart.js
+                                        var success = await addToCart(productId, quantity);
+
+                                        if (!success) {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Lỗi',
+                                                text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
+                                            });
+                                        }
                                     });
                                 </script>
                             </div>
@@ -550,34 +538,24 @@
             });
 
             // Xử lý mua ngay
-            $('#buyNowBtn').click(function() {
+            $('#buyNowBtn').click(async function() {
                 var productId = '@Model.Id';
-                var quantity = $('#quantity').val();
+                var quantity = parseInt($('#quantity').val());
 
-                // Thêm vào giỏ hàng trước, sau đó chuyển đến trang thanh toán
-                $.ajax({
-                    url: '@Url.Action("AddToCart", "Cart")',
-                    type: 'POST',
-                    data: {
-                        productId: productId,
-                        quantity: quantity,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                    },
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    success: function() {
-                        window.location.href = '@Url.Action("Create", "Order")';
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(xhr.responseText);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Lỗi',
-                            text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
-                        });
-                    }
-                });
+                // Sử dụng hàm addToCart từ cart.js, sau đó chuyển đến trang thanh toán
+                var success = await addToCart(productId, quantity);
+
+                if (success) {
+                    // Chuyển hướng đến trang thanh toán
+                    window.location.href = '@Url.Action("Create", "Order")';
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
+                    });
+                }
+            });
             });
 
             // Xử lý đánh giá sao

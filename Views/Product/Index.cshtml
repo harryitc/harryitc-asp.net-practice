@@ -376,7 +376,7 @@
             });
 
             // Xử lý nút "Thêm vào giỏ"
-            $('.add-to-cart-btn').click(function() {
+            $('.add-to-cart-btn').click(async function() {
                 var productId = $(this).data('product-id');
                 var button = $(this);
 
@@ -387,52 +387,33 @@
                 button.html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
                 button.prop('disabled', true);
 
-                $.ajax({
-                    url: '@Url.Action("AddToCart", "Cart")',
-                    type: 'POST',
-                    data: {
-                        productId: productId,
-                        quantity: 1,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                    },
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    success: function() {
-                        // Hiển thị thông báo thành công
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Thành công!',
-                            text: 'Đã thêm sản phẩm vào giỏ hàng',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
+                try {
+                    // Sử dụng hàm addToCart từ cart.js
+                    await addToCart(productId, 1);
 
-                        // Khôi phục trạng thái nút
-                        setTimeout(function() {
-                            button.html(originalText);
-                            button.prop('disabled', false);
-                        }, 1500);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(xhr.responseText);
-
-                        // Hiển thị thông báo lỗi
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Lỗi',
-                            text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
-                        });
-
-                        // Khôi phục trạng thái nút
+                    // Khôi phục trạng thái nút sau khi hoàn thành
+                    setTimeout(function() {
                         button.html(originalText);
                         button.prop('disabled', false);
-                    }
-                });
+                    }, 1500);
+                } catch (error) {
+                    console.error('Error:', error);
+
+                    // Hiển thị thông báo lỗi
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
+                    });
+
+                    // Khôi phục trạng thái nút
+                    button.html(originalText);
+                    button.prop('disabled', false);
+                }
             });
 
             // Xử lý nút "Mua ngay"
-            $('.buy-now-btn').click(function() {
+            $('.buy-now-btn').click(async function() {
                 var productId = $(this).data('product-id');
                 var button = $(this);
 
@@ -443,36 +424,32 @@
                 button.html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
                 button.prop('disabled', true);
 
-                $.ajax({
-                    url: '@Url.Action("AddToCart", "Cart")',
-                    type: 'POST',
-                    data: {
-                        productId: productId,
-                        quantity: 1,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                    },
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    success: function() {
+                try {
+                    // Sử dụng hàm addToCart từ cart.js
+                    var success = await addToCart(productId, 1);
+
+                    if (success) {
                         // Chuyển hướng đến trang thanh toán
                         window.location.href = '@Url.Action("Create", "Order")';
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(xhr.responseText);
-
-                        // Hiển thị thông báo lỗi
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Lỗi',
-                            text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
-                        });
-
+                    } else {
                         // Khôi phục trạng thái nút
                         button.html(originalText);
                         button.prop('disabled', false);
                     }
-                });
+                } catch (error) {
+                    console.error('Error:', error);
+
+                    // Hiển thị thông báo lỗi
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
+                    });
+
+                    // Khôi phục trạng thái nút
+                    button.html(originalText);
+                    button.prop('disabled', false);
+                }
             });
         });
     </script>
