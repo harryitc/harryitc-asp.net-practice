@@ -7,6 +7,7 @@
     new MenuItem { Title = "Danh mục", Area="", Controller = "Category", Action = "Index", Role=RoleUser.Admin }, // Chỉ Admin
     new MenuItem { Title = "Hình ảnh", Area="", Controller = "ProductImage", Action = "Index", Role=RoleUser.Admin }, // Chỉ Admin
     new MenuItem { Title = "Quản lý đơn hàng", Area="", Controller = "Order", Action = "Index", Role=RoleUser.Admin }, // Chỉ Admin
+    new MenuItem { Title = "Quản lý người dùng", Area="", Controller = "User", Action = "Index", Role=RoleUser.Admin }, // Chỉ Admin
     new MenuItem { Title = "Đơn hàng của tôi", Area="", Controller = "Order", Action = "MyOrders" } // Cho tất cả người dùng đã đăng nhập
 };
 

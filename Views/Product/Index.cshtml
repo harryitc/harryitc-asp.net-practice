@@ -83,9 +83,23 @@
     </div>
 </div>
 
-<div class="card mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Danh sách sản phẩm (@Model.Count())</h5>
+    <div class="btn-group" role="group">
+        <input type="radio" class="btn-check" name="viewMode" id="table-view" autocomplete="off" checked>
+        <label class="btn btn-outline-primary" for="table-view">
+            <i class="fas fa-table me-1"></i> Bảng
+        </label>
+        <input type="radio" class="btn-check" name="viewMode" id="grid-view" autocomplete="off">
+        <label class="btn btn-outline-primary" for="grid-view">
+            <i class="fas fa-th-large me-1"></i> Lưới
+        </label>
+    </div>
+</div>
+
+<div class="card mb-4" id="table-view-container">
     <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Danh sách sản phẩm</h5>
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Chế độ bảng</h5>
         <span class="badge bg-primary">Tổng: @Model.Count() sản phẩm</span>
     </div>
     <div class="card-body">
@@ -152,62 +166,136 @@
     </div>
 </div>
 
-<h4 class="mb-3">Xem dạng lưới</h4>
-
-<div class="row">
-    @foreach (var item in Model)
-    {
-        <div class="col-auto custom-col">
-            <div class="card shadow" style="width: 15rem;">
-                <img loading="lazy" src=@Html.DisplayFor(modelItem => item.ImageUrl) class="card-img-top object-fit-cover"
-                    alt="...">
-                <div class="tools">
-                @if (User.IsInRole(RoleUser.Admin)){
-                    <a asp-area="" asp-action="Edit" asp-route-id="@item.Id">
-                        <i class="fa-solid fa-pen-to-square myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-title="Chỉnh sửa"></i>
-                    </a>
-                }
-                    <a asp-area="" asp-action="Details" asp-route-id="@item.Id">
-                        <i class="fa-solid fa-eye myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-title="Chi tiết"></i>
-                    </a>
-                @if (User.IsInRole(RoleUser.Admin)){
-                    <a asp-area="" asp-action="Delete" asp-route-id="@item.Id">
-                        <i class="fa-solid fa-trash myTooltip" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-title="Xóa"></i>
-                    </a>
-                }
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">@Html.DisplayFor(modelItem => item.Name)</h5>
-                    <!-- <p class="card-text">Some quick example text to build on the card title and make up the
-                                                                                                                    bulk of
-                                                                                                                    the card's content.</p> -->
-                    <h3><span class="fw-bold ">@item.Price.ToString("N0")đ</span></h3>
-                    <p class="text-muted">@Html.DisplayFor(modelItem => item.Description)</p>
-                    <div class="mb-4 vote-star">
-                        <i class="text-warning fas fa-star"></i>
-                        <i class="text-warning fas fa-star"></i>
-                        <i class="text-warning fas fa-star"></i>
-                        <i class="text-warning fas fa-star"></i>
-                        <i class="text-warning fas fa-star-half-alt"></i>
-                        <span class="total-rating">(20 lượt mua)</span>
+<div class="card mb-4" id="grid-view-container" style="display: none;">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-th-large me-2"></i>Chế độ lưới</h5>
+        <span class="badge bg-primary">Tổng: @Model.Count() sản phẩm</span>
+    </div>
+    <div class="card-body">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 product-card shadow-sm">
+                        <div class="position-relative">
+                            <img src="@item.ImageUrl" class="card-img-top product-img" alt="@item.Name" style="height: 200px; object-fit: cover;">
+                            <div class="product-overlay">
+                                <div class="d-flex justify-content-center">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if (User.IsInRole(RoleUser.Admin))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-light rounded-circle mx-1" data-bs-toggle="tooltip" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                            @if (item.Discount > 0)
+                            {
+                                <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded-pill">-@item.Discount%</div>
+                            }
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-info">@(item.Category?.Name ?? "Không có")</span>
+                                <div class="small">
+                                    <i class="fas fa-star text-warning"></i>
+                                    <span>4.5 (20)</span>
+                                </div>
+                            </div>
+                            <h5 class="card-title">@item.Name</h5>
+                            <p class="card-text text-muted small">@(item.Description?.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description)</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div>
+                                    <span class="fw-bold fs-5">@item.Price.ToString("N0")đ</span>
+                                    @if (item.OriginialPrice > item.Price)
+                                    {
+                                        <span class="text-decoration-line-through text-muted ms-2">@item.OriginialPrice.ToString("N0")đ</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="d-flex mt-3">
+                                <button class="btn btn-outline-success flex-grow-1" onclick="addToCart(@item.Id); return false;">
+                                    <i class="fas fa-cart-plus me-1"></i> Thêm vào giỏ
+                                </button>
+                                <a href="#" class="btn btn-primary ms-2">
+                                    Mua ngay
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <a href="#" class="btn btn-outline-success" onclick="addToCart(@item.Id); return false;">
-                        <i class="fa-solid fa-cart-plus"></i>
-                    </a>
-                    <a href="#" class="btn btn-primary ms-2 px-4">
-                        Mua ngay
-                    </a>
                 </div>
-            </div>
+            }
         </div>
-    }
+    </div>
 </div>
-
-
 <style>
+    /* Product Grid Styles */
+    .product-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        overflow: hidden;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+
+    .product-img {
+        transition: transform 0.5s;
+    }
+
+    .product-card:hover .product-img {
+        transform: scale(1.05);
+    }
+
+    .product-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .product-card:hover .product-overlay {
+        opacity: 1;
+    }
+
+    .product-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-desc {
+        height: 40px;
+        overflow: hidden;
+    }
+
+    .product-price {
+        font-weight: bold;
+        color: #dc3545;
+    }
+
+    .product-original-price {
+        text-decoration: line-through;
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-left: 5px;
+    }
+
+    /* Legacy styles for old grid view */
     .custom-col {
         padding-top: calc(var(--bs-gutter-x)* .5);
         padding-bottom: calc(var(--bs-gutter-x)* .5);
@@ -243,3 +331,40 @@
         top: 10px;
     }
 </style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Toggle view mode
+            $('#table-view').change(function() {
+                if($(this).is(':checked')) {
+                    $('#table-view-container').show();
+                    $('#grid-view-container').hide();
+                    localStorage.setItem('productViewMode', 'table');
+                }
+            });
+
+            $('#grid-view').change(function() {
+                if($(this).is(':checked')) {
+                    $('#grid-view-container').show();
+                    $('#table-view-container').hide();
+                    localStorage.setItem('productViewMode', 'grid');
+                }
+            });
+
+            // Load saved view mode preference
+            const savedViewMode = localStorage.getItem('productViewMode');
+            if (savedViewMode === 'grid') {
+                $('#grid-view').prop('checked', true).trigger('change');
+            } else {
+                $('#table-view').prop('checked', true).trigger('change');
+            }
+
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+}

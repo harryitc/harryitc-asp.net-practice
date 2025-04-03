@@ -1,101 +1,158 @@
 @model FlowerShop.Models.ProductImage
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm hình ảnh sản phẩm";
     var unsplashImages = ViewData["ImageList"] as List<string>;
 }
 
-<h1>Create</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>@ViewData["Title"]</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+    </a>
+</div>
 
-<h4>ProductImage</h4>
 <hr />
 <div class="row">
-        <div class="col-md-4">
-        <form asp-action="Create" method="post" enctype="multipart/form-data">
-            <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model?.ImageUrl" />
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-
-            @* <div class="form-group">
-                <label asp-for="ImageUrl" class="form-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
-            </div> *@
-
-
-
-            <div class="form-group">
-                <label class="form-label" asp-for="ImageUrl"></label>
-                <div>
-                    <input type="radio" name="imageOption" value="url" checked> Nhập URL
-                    <input type="radio" name="imageOption" value="upload"> Upload
-                    <input type="radio" name="imageOption" value="select"> Chọn từ danh sách
-                </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-image me-2"></i>Thông tin hình ảnh</h5>
             </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    <input type="hidden" id="ImageUrl" name="ImageUrl" value="@Model?.ImageUrl" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <!-- Nhập URL ảnh -->
-            <div class="form-group" id="urlInput">
-                <input type="text" name="__imageUrl" class="form-control" placeholder="Nhập URL hình ảnh">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <select asp-for="ProductId" class="form-select" asp-items="ViewBag.ProductId"></select>
+                                <label asp-for="ProductId">Sản phẩm</label>
+                                <span asp-validation-for="ProductId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Chọn hình ảnh</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="imageOption" id="url-option" value="url" checked autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="url-option">
+                                        <i class="fas fa-link me-1"></i> Nhập URL
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="imageOption" id="upload-option" value="upload" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="upload-option">
+                                        <i class="fas fa-upload me-1"></i> Tải lên
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="imageOption" id="select-option" value="select" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="select-option">
+                                        <i class="fas fa-images me-1"></i> Chọn từ thư viện
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Nhập URL ảnh -->
+                            <div class="mb-3" id="urlInput">
+                                <div class="form-floating">
+                                    <input type="text" name="__imageUrl" id="__imageUrl" class="form-control" placeholder="Nhập URL hình ảnh">
+                                    <label for="__imageUrl">URL hình ảnh</label>
+                                </div>
+                            </div>
+
+                            <!-- Upload ảnh -->
+                            <div class="mb-3" id="uploadInput" style="display: none;">
+                                <div class="input-group">
+                                    <input type="file" name="ImageFile" class="form-control" id="ImageFile" accept="image/*">
+                                    <label class="input-group-text" for="ImageFile"><i class="fas fa-upload"></i></label>
+                                </div>
+                            </div>
+
+                            <!-- Chọn ảnh từ Unsplash -->
+                            <div class="mb-3" id="selectInput" style="display: none;">
+                                <label class="form-label">Chọn hình ảnh từ thư viện:</label>
+                                <div class="image-grid">
+                                    @if (unsplashImages != null)
+                                    {
+                                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2">
+                                            @foreach (var imageUrl in unsplashImages)
+                                            {
+                                                <div class="col">
+                                                    <div class="card h-100 selectable-image-card" onclick="selectImage('@imageUrl')">
+                                                        <img src="@imageUrl" class="card-img-top" style="height: 120px; object-fit: cover;">
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> Hủy
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i> Lưu hình ảnh
+                        </button>
+                </form>
             </div>
-
-            <!-- Upload ảnh -->
-            <div class="form-group" id="uploadInput" style="display: none;">
-                <input type="file" name="ImageFile" class="form-control">
-            </div>
-
-            <!-- Chọn ảnh từ Unsplash -->
-            <div class="form-group mb-3" id="selectInput" style="display: none;">
-                <label class="form-label">Chọn hình ảnh:</label>
-                <div class="image-grid">
-                    @if (unsplashImages != null)
-                    {
-                        @foreach (var imageUrl in unsplashImages)
-                        {
-                            <img src="@imageUrl" class="img img-fluid selectable-image" onclick="selectImage('@imageUrl')">
-                        }
-                    }
-                </div>
-            </div>
-
-
-
-
-            <div class="form-group">
-                <label asp-for="ProductId" class="form-label"></label>
-                <select asp-for="ProductId" class="form-select" asp-items="ViewBag.ProductId"></select>
-                <span asp-validation-for="ProductId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-    <div class="col-md">
-        <!-- Preview ảnh -->
-        <div class="mb-3">
-            <label>Preview:</label>
-            <img id="imagePreview" src="@Model?.ImageUrl" alt="Preview"
-                style="max-width: 500px;max-height: 500px; display: block; border: 1px solid #ccc; padding: 5px;">
         </div>
-        <!-- Thumbnails ảnh -->
-        @* @if (Model.ProductImages != null)
-        {
-            @foreach (var imageUrl in Model.ProductImages)
-            {
-                <img src="@imageUrl.ImageUrl" class="img custom-image-thumbnail img-fluid">
-            }
-        } *@
-        @* <label asp-for="ProductImages" class="form-control"></label> *@
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-eye me-2"></i>Xem trước hình ảnh</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="preview-container mb-3">
+                    <img id="imagePreview" src="@(Model?.ImageUrl ?? "/images/placeholder.png")" alt="Preview"
+                         class="img-fluid rounded shadow" style="max-height: 300px; max-width: 100%;">
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Hình ảnh sản phẩm sẽ hiển thị ở đây khi bạn chọn hoặc tải lên.
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<style>
+    .selectable-image-card {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 2px solid transparent;
+    }
+
+    .selectable-image-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: #0d6efd;
+    }
+</style>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
         await Html.RenderPartialAsync("_HandleImageScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function() {
+            // Highlight selected image
+            $('.selectable-image-card').click(function() {
+                $('.selectable-image-card').removeClass('border-primary');
+                $(this).addClass('border-primary');
+            });
+        });
+    </script>
 }
