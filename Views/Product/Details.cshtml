@@ -538,24 +538,46 @@
             });
 
             // Xử lý mua ngay
-            $('#buyNowBtn').click(async function() {
+            $('#buyNowBtn').click(function() {
                 var productId = '@Model.Id';
                 var quantity = parseInt($('#quantity').val());
+                var button = $(this);
 
-                // Sử dụng hàm addToCart từ cart.js, sau đó chuyển đến trang thanh toán
-                var success = await addToCart(productId, quantity);
+                // Lưu trạng thái ban đầu của nút
+                var originalText = button.html();
 
-                if (success) {
-                    // Chuyển hướng đến trang thanh toán
-                    window.location.href = '@Url.Action("Create", "Order")';
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Lỗi',
-                        text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
-                    });
-                }
-            });
+                // Thay đổi trạng thái nút để hiển thị đang xử lý
+                button.html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+                button.prop('disabled', true);
+
+                // Gửi trực tiếp yêu cầu AJAX thay vì sử dụng hàm addToCart
+                $.ajax({
+                    url: '@Url.Action("AddToCart", "Cart")',
+                    type: 'POST',
+                    data: {
+                        productId: productId,
+                        quantity: quantity,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function() {
+                        // Chuyển hướng đến trang thanh toán
+                        window.location.href = '@Url.Action("Create", "Order")';
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+
+                        // Hiển thị thông báo lỗi
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng!'
+                        });
+
+                        // Khôi phục trạng thái nút
+                        button.html(originalText);
+                        button.prop('disabled', false);
+                    }
+                });
             });
 
             // Xử lý đánh giá sao
